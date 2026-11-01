@@ -1,0 +1,144 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+@source '../js/**/*.js';
+@source '../../app/**/*.php';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-brand-50: #fff2ed;
+    --color-brand-100: #ffe2d5;
+    --color-brand-200: #ffc5ab;
+    --color-brand-300: #ff9d74;
+    --color-brand-400: #ff733d;
+    --color-brand-500: #ff5a00;
+    --color-brand-600: #f04400;
+    --color-brand-700: #cc3200;
+    --color-brand-800: #a32a05;
+    --color-brand-900: #82260b;
+
+    --color-ink: #1c1c1c;
+    --color-ink-soft: #4f4f4f;
+    --color-muted: #767676;
+    --color-line: #e6e6e6;
+    --color-surface: #f5f5f5;
+    --color-choice: #00a67e;
+    --color-choice-dark: #007d5e;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -20px rgb(0 0 0 / 0.22);
+    --shadow-float: 0 12px 40px -12px rgb(0 0 0 / 0.28);
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-surface text-ink antialiased;
+    }
+
+    ::selection {
+        @apply bg-brand-500/25;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+    }
+}
+
+@utility no-scrollbar {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@utility text-2xs {
+    font-size: 0.625rem;
+    line-height: 0.875rem;
+}
+
+@layer components {
+    .toast-enter {
+        animation: toast-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .toast-leave {
+        animation: toast-leave 180ms ease-in both;
+    }
+
+    .hero-track {
+        transition: transform 560ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .mega-menu-enter {
+        animation: menu-enter 160ms ease-out both;
+    }
+
+    .skeleton-shimmer {
+        background: linear-gradient(90deg, #f4f4f4 25%, #ececec 37%, #f4f4f4 63%);
+        background-size: 400% 100%;
+        animation: shimmer 1.4s ease infinite;
+    }
+
+    [data-wishlist][data-active='true'] {
+        color: var(--color-brand-600);
+    }
+
+    [data-wishlist][data-active='true'] [data-wishlist-icon] {
+        fill: currentColor;
+    }
+}
+
+@keyframes toast-enter {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+    }
+}
+
+@keyframes toast-leave {
+    to {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+}
+
+@keyframes menu-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+}
+
+@keyframes shimmer {
+    from {
+        background-position: 100% 50%;
+    }
+
+    to {
+        background-position: 0 50%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .hero-track,
+    .toast-enter,
+    .toast-leave,
+    .mega-menu-enter,
+    .skeleton-shimmer {
+        animation: none;
+        transition: none;
+    }
+}
