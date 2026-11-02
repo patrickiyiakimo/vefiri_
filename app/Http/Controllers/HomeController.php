@@ -35,6 +35,7 @@ class HomeController extends Controller
                 'pets',
             ]),
             'recommendationTabs' => $this->recommendationTabs($products),
+            'vendorProducts' => array_values($this->catalog->vendorProducts(12)),
             'promoBanners' => $this->promoBanners(),
             'businessStats' => [
                 ['value' => '3K+', 'label' => 'Factory-direct products'],
@@ -297,7 +298,7 @@ class HomeController extends Controller
         return [
             [
                 'eyebrow' => 'New here?',
-                'title' => 'Get â‚¦5,000 off your first order',
+                'title' => 'Get ₦5,000 off your first order',
                 'description' => 'Use code NEW5 at checkout. Minimum spend â‚¦25,000.',
                 'cta' => 'Claim coupon',
                 'theme' => 'from-[#fff1e8] via-[#ffe4d1] to-[#ffd0ad]',

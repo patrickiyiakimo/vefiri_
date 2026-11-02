@@ -21,5 +21,7 @@
 
     <x-sections.more-to-love :tabs="$recommendationTabs" />
 
+    <x-sections.vendor-products :products="$vendorProducts" />
+
     <x-sections.newsletter />
 @endsection

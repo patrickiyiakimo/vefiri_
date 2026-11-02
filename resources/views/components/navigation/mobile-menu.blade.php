@@ -71,10 +71,17 @@
                         <x-ui.icon name="heart" class="size-4 text-muted" />
                         My wishlist
                     </a>
-                    <a href="{{ route('vendors.apply') }}" class="col-span-2 flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-3 text-xs font-semibold text-brand-700">
-                        <x-ui.icon name="store" class="size-4" />
-                        Become a verified vendor
-                    </a>
+                    @if (auth()->check() && auth()->user()->isVendor())
+                        <a href="{{ route('vendor.dashboard') }}" class="col-span-2 flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-3 text-xs font-semibold text-brand-700">
+                            <x-ui.icon name="store" class="size-4" />
+                            Vendor dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('vendors.apply') }}" class="col-span-2 flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-3 text-xs font-semibold text-brand-700">
+                            <x-ui.icon name="store" class="size-4" />
+                            Become a verified vendor
+                        </a>
+                    @endif
                 </div>
             </nav>
 

@@ -17,7 +17,9 @@
         </a>
 
         <div class="absolute top-2 left-2 flex flex-col items-start gap-1.5">
-            <x-badges.discount :percentage="$product['discount']" />
+            @if ($product['discount'] > 0)
+                <x-badges.discount :percentage="$product['discount']" />
+            @endif
             @if ($product['badge'])
                 <x-badges.label tone="yellow">{{ $product['badge'] }}</x-badges.label>
             @endif
@@ -59,9 +61,17 @@
             {{ $product['title'] }}
         </a>
 
+        @if (! empty($product['is_vendor_product']))
+            <p class="mt-1 truncate text-[10px] font-medium text-muted">By {{ $product['store'] }}</p>
+        @endif
+
         <x-ui.price :amount="$product['price']" :old="$product['old_price']" size="sm" class="mt-1.5" />
 
-        <x-ui.rating :rating="$product['rating']" :sold="$product['sold']" class="mt-1.5" />
+        @if ($product['rating'] > 0)
+            <x-ui.rating :rating="$product['rating']" :sold="$product['sold']" class="mt-1.5" />
+        @else
+            <p class="mt-1.5 text-2xs font-medium text-choice-dark">New arrival</p>
+        @endif
 
         <div class="mt-auto flex flex-wrap items-center gap-1.5 pt-2">
             @if ($product['choice'])

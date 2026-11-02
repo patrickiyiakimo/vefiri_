@@ -8,7 +8,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\FavouriteController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
+use App\Http\Controllers\Vendor\ProductController as VendorProductController;
 use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +19,9 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/vendors', [VendorController::class, 'index'])->name('vendors.index');
+Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('pages.privacy');
+Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('pages.terms');
+Route::get('/returns-and-refunds', [PageController::class, 'returns'])->name('pages.returns');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -40,6 +46,19 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/vendors/apply', [VendorController::class, 'store'])->name('vendors.apply.store');
     Route::get('/vendors/application', [VendorController::class, 'status'])->name('vendors.status');
 });
+
+Route::middleware(['auth', 'vendor'])
+    ->prefix('vendor')
+    ->name('vendor.')
+    ->group(function (): void {
+        Route::get('/', VendorDashboardController::class)->name('dashboard');
+        Route::get('/products', [VendorProductController::class, 'index'])->name('products.index');
+        Route::get('/products/create', [VendorProductController::class, 'create'])->name('products.create');
+        Route::post('/products', [VendorProductController::class, 'store'])->name('products.store');
+        Route::get('/products/{product}/edit', [VendorProductController::class, 'edit'])->name('products.edit');
+        Route::patch('/products/{product}', [VendorProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{product}', [VendorProductController::class, 'destroy'])->name('products.destroy');
+    });
 
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')

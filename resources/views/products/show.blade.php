@@ -24,14 +24,16 @@
                             height="720"
                             class="h-full w-full object-cover"
                         >
-                        <x-badges.discount :percentage="$product['discount']" class="absolute top-3 left-3" />
+                        @if ($product['discount'] > 0)
+                            <x-badges.discount :percentage="$product['discount']" class="absolute top-3 left-3" />
+                        @endif
                     </div>
 
                     <div class="mt-3 grid grid-cols-3 gap-2">
                         @foreach ([
                             ['icon' => 'shield', 'title' => 'Buyer protection', 'copy' => 'Money back guarantee'],
                             ['icon' => 'truck', 'title' => 'Nationwide delivery', 'copy' => 'Tracked shipping'],
-                            ['icon' => 'rotate', 'title' => 'Easy returns', 'copy' => 'Within 15 days'],
+                            ['icon' => 'rotate', 'title' => 'Easy returns', 'copy' => 'Within 7-15 days'],
                         ] as $benefit)
                             <div class="rounded-xl bg-surface p-3">
                                 <x-ui.icon :name="$benefit['icon']" class="size-4 text-choice-dark" />
@@ -61,13 +63,21 @@
                     <h1 class="mt-3 text-xl leading-7 font-black tracking-tight text-ink sm:text-2xl sm:leading-8">{{ $product['title'] }}</h1>
 
                     <div class="mt-2 flex flex-wrap items-center gap-3">
-                        <x-ui.rating :rating="$product['rating']" :sold="$product['sold']" />
-                        <span class="text-2xs text-muted">{{ $product['discount'] }}% off today</span>
+                        @if ($product['rating'] > 0)
+                            <x-ui.rating :rating="$product['rating']" :sold="$product['sold']" />
+                        @else
+                            <span class="text-2xs font-semibold text-choice-dark">New arrival</span>
+                        @endif
+                        @if ($product['discount'] > 0)
+                            <span class="text-2xs text-muted">{{ $product['discount'] }}% off today</span>
+                        @endif
                     </div>
 
                     <div class="mt-5 rounded-2xl bg-gradient-to-r from-[#fff1e8] via-[#fff8f3] to-white p-4">
                         <x-ui.price :amount="$product['price']" :old="$product['old_price']" size="lg" />
-                        <p class="mt-1 text-2xs text-choice-dark">Inclusive of all taxes. Save {{ $product['discount'] }}% today.</p>
+                        <p class="mt-1 text-2xs text-choice-dark">
+                            Inclusive of all taxes.@if ($product['discount'] > 0) Save {{ $product['discount'] }}% today.@endif
+                        </p>
                     </div>
 
                     <div data-product-purchase class="mt-5">
@@ -83,7 +93,9 @@
                                     <option value="{{ $quantity }}">{{ $quantity }}</option>
                                 @endfor
                             </select>
-                            <span class="text-2xs text-muted">{{ $product['sold'] }} sold</span>
+                            @if ($product['sold'])
+                                <span class="text-2xs text-muted">{{ $product['sold'] }} sold</span>
+                            @endif
                         </div>
 
                         <div class="mt-4 flex flex-wrap gap-2">
@@ -114,7 +126,13 @@
                     <div class="mt-5 space-y-2 border-t border-line pt-4 text-xs text-ink-soft">
                         <p class="flex items-center justify-between gap-3">
                             <span class="text-muted">Sold by</span>
-                            <span class="font-semibold text-ink">{{ $product['store'] }}</span>
+                            <span class="flex items-center gap-1.5 font-semibold text-ink">
+                                {{ $product['store'] }}
+                                @if (! empty($product['is_vendor_product']))
+                                    <x-ui.icon name="badge-check" class="size-3.5 text-choice" />
+                                    <span class="text-2xs font-semibold text-choice-dark">Verified vendor</span>
+                                @endif
+                            </span>
                         </p>
                         <p class="flex items-center justify-between gap-3">
                             <span class="text-muted">Category</span>
@@ -129,6 +147,17 @@
             </div>
         </x-ui.container>
     </section>
+
+    @if (! empty($product['description']))
+        <section class="pt-4" aria-labelledby="product-description-heading">
+            <x-ui.container>
+                <div class="rounded-2xl border border-black/[0.03] bg-white px-5 py-4 shadow-card sm:px-7 sm:py-5">
+                    <h2 id="product-description-heading" class="text-xl font-black tracking-tight text-ink">Product details</h2>
+                    <p class="mt-2 max-w-3xl text-sm leading-7 whitespace-pre-line text-ink-soft">{{ $product['description'] }}</p>
+                </div>
+            </x-ui.container>
+        </section>
+    @endif
 
     <section class="pt-5 pb-2" aria-labelledby="related-products-heading">
         <x-ui.container>

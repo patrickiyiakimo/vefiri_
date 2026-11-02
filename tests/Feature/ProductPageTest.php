@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ProductPageTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_product_details_page_renders_product_and_related_items(): void
     {
         $response = $this->get(route('products.show', 'headphones'));

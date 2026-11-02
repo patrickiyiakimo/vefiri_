@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class SearchTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_products_can_be_searched_by_keyword(): void
     {
         $response = $this->get(route('search', ['q' => 'headphones']));
