@@ -39,10 +39,13 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('logout') }}" class="mt-3">
-                        @csrf
-                        <x-buttons.secondary type="submit" size="sm" class="w-full">Sign out</x-buttons.secondary>
-                    </form>
+                    <div class="mt-3 grid gap-2">
+                        <x-buttons.primary href="{{ route('account.show') }}" size="sm" class="w-full">My account</x-buttons.primary>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <x-buttons.secondary type="submit" size="sm" class="w-full">Sign out</x-buttons.secondary>
+                        </form>
+                    </div>
                 @else
                     <p class="text-sm font-bold">Welcome to Vefiri</p>
                     <p class="mt-1 text-2xs text-ink-soft">Sign in for member prices and exclusive coupons.</p>

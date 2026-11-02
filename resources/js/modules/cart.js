@@ -52,6 +52,12 @@ export function initCart() {
     const cartUrl = document.body.dataset.cartUrl;
     const itemsUrl = document.body.dataset.cartItemsUrl;
 
+    document.querySelectorAll('[data-cart-checkout]').forEach((button) => {
+        button.addEventListener('click', () => {
+            showToast('Checkout is not available in this demo.');
+        });
+    });
+
     if (!itemsContainer || !template || !cartUrl || !itemsUrl) {
         return;
     }
@@ -201,10 +207,6 @@ export function initCart() {
         } else if (event.target.closest('[data-cart-item-remove]')) {
             removeItem(item);
         }
-    });
-
-    document.querySelector('[data-cart-checkout]')?.addEventListener('click', () => {
-        showToast('Checkout is not available in this demo.');
     });
 
     refresh();

@@ -177,7 +177,7 @@
                             <x-buttons.secondary type="button" data-auth-open="register" size="sm" class="w-full">Register</x-buttons.secondary>
                         </div>
                     @else
-                        <a href="{{ route('home') }}" class="mt-3 flex h-8 w-full items-center justify-center rounded-full border border-line bg-white text-xs font-semibold text-ink transition hover:border-ink">
+                        <a href="{{ route('account.show') }}" class="mt-3 flex h-8 w-full items-center justify-center rounded-full border border-line bg-white text-xs font-semibold text-ink transition hover:border-ink">
                             My account
                         </a>
                     @endguest
