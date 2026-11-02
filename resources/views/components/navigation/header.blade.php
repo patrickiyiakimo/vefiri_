@@ -63,10 +63,16 @@
                             data-dropdown-panel
                             class="absolute top-[calc(100%+10px)] right-0 z-50 hidden w-64 overflow-hidden rounded-2xl border border-line bg-white p-4 shadow-float mega-menu-enter"
                         >
-                            <p class="text-sm font-bold text-ink">Your Vefiri account</p>
+                            <a href="{{ route('account.show') }}" class="block rounded-lg transition hover:text-brand-600">
+                                <p class="text-sm font-bold text-ink">Your Vefiri account</p>
+                            </a>
                             <p class="mt-1 truncate text-xs text-muted">{{ auth()->user()->email }}</p>
 
                             <div class="mt-3 space-y-1 border-t border-line pt-3">
+                                <a href="{{ route('account.show') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
+                                    <x-ui.icon name="user" class="size-4" />
+                                    My account
+                                </a>
                                 <a href="{{ route('home') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
                                     <x-ui.icon name="orders" class="size-4" />
                                     My orders
