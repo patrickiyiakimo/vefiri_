@@ -31,9 +31,9 @@ class HomeController extends Controller
             'recommendationTabs' => $this->recommendationTabs($products),
             'promoBanners' => $this->promoBanners(),
             'businessStats' => [
-                ['value' => '5M+', 'label' => 'Factory-direct products'],
-                ['value' => '20M+', 'label' => 'Items ready to ship'],
-                ['value' => '10', 'label' => 'Local warehouses'],
+                ['value' => '3K+', 'label' => 'Factory-direct products'],
+                ['value' => '2K+', 'label' => 'Items ready to ship'],
+                ['value' => '20', 'label' => 'Local warehouses'],
                 ['value' => '24H', 'label' => 'Sourcing support'],
             ],
         ]);

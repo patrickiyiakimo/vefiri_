@@ -24,5 +24,6 @@ class HomePageTest extends TestCase
         $response->assertSee('data-auth-modal', false);
         $response->assertSee('data-auth-open', false);
         $response->assertSee('favicon.svg', false);
+        $response->assertSee('code.jivosite.com/widget/vlvNzUXyLG', false);
     }
 }
