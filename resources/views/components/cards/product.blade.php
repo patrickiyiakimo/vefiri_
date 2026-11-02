@@ -4,7 +4,7 @@
 
 <article {{ $attributes->merge(['class' => 'group relative flex flex-col overflow-hidden rounded-xl border border-black/[0.04] bg-white transition duration-300 hover:-translate-y-0.5 hover:shadow-card']) }}>
     <div class="relative aspect-square overflow-hidden bg-[#f6f6f6]">
-        <a href="{{ route('home') }}" class="block h-full w-full" aria-label="{{ $product['title'] }}">
+        <a href="{{ route('products.show', $product['id']) }}" class="block h-full w-full" aria-label="{{ $product['title'] }}">
             <img
                 src="{{ asset($product['image']) }}"
                 alt="{{ $product['title'] }}"
@@ -52,7 +52,7 @@
 
     <div class="flex flex-1 flex-col p-2.5">
         <a
-            href="{{ route('home') }}"
+            href="{{ route('products.show', $product['id']) }}"
             class="line-clamp-2 min-h-8 text-xs leading-4 text-ink-soft transition hover:text-brand-600"
             title="{{ $product['title'] }}"
         >

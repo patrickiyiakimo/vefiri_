@@ -10,7 +10,7 @@
     <meta name="description" content="@yield('description', 'Shop millions of products at affordable prices with nationwide delivery in Nigeria, buyer protection and easy returns.')">
     <meta name="application-name" content="Vefiri">
 
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <link rel="canonical" href="{{ url()->current() }}">
 
     <meta property="og:site_name" content="Vefiri">
@@ -25,7 +25,13 @@
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-surface text-ink">
+<body
+    class="min-h-screen bg-surface text-ink"
+    data-authenticated="{{ auth()->check() ? 'true' : 'false' }}"
+    data-cart-url="{{ route('cart.index') }}"
+    data-cart-items-url="{{ route('cart.items.store') }}"
+    data-favourites-url="{{ route('favourites.index') }}"
+>
     <a
         href="#main-content"
         class="sr-only z-[120] rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3"

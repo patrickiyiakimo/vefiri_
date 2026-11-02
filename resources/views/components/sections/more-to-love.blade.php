@@ -32,6 +32,7 @@
             @foreach ($tabs as $tab)
                 <div
                     data-tab-panel="{{ $tab['id'] }}"
+                    data-load-more-scope
                     @class([
                         'mt-4',
                         'hidden' => ! $loop->first,
@@ -39,18 +40,24 @@
                 >
                     <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-6">
                         @foreach ($tab['products'] as $product)
-                            <x-cards.product :product="$product" />
+                            <x-cards.product
+                                :product="$product"
+                                data-more-item
+                                :class="$loop->index >= 12 ? 'hidden' : null"
+                            />
                         @endforeach
                     </div>
+
+                    @if (count($tab['products']) > 12)
+                        <div data-load-more-controls class="mt-5 flex justify-center">
+                            <x-buttons.secondary type="button" data-load-more class="px-7">
+                                Show more products
+                                <x-ui.icon name="chevron-down" class="size-4" />
+                            </x-buttons.secondary>
+                        </div>
+                    @endif
                 </div>
             @endforeach
-
-            <div class="mt-5 flex justify-center">
-                <x-buttons.secondary href="{{ route('home') }}" class="px-7">
-                    Show more products
-                    <x-ui.icon name="chevron-down" class="size-4" />
-                </x-buttons.secondary>
-            </div>
         </div>
     </x-ui.container>
 </section>

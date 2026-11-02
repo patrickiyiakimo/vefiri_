@@ -30,8 +30,8 @@
             <div class="rounded-2xl bg-gradient-to-br from-[#fff2e8] to-[#ffd9bf] p-4">
                 @auth
                     <div class="flex items-center gap-3">
-                        <span class="flex size-10 items-center justify-center rounded-full bg-white text-sm font-black text-brand-700">
-                            {{ str(auth()->user()->name)->substr(0, 1)->upper() }}
+                        <span class="flex size-10 items-center justify-center rounded-full bg-white text-brand-700">
+                            <x-ui.icon name="user" class="size-5" />
                         </span>
                         <div class="min-w-0">
                             <p class="truncate text-sm font-bold">Hello, {{ auth()->user()->name }}</p>
@@ -67,11 +67,11 @@
                         <x-ui.icon name="gift" class="size-4 text-muted" />
                         Bundle deals
                     </a>
-                    <a href="{{ route('home') }}" class="flex items-center gap-2 rounded-xl bg-surface px-3 py-3 text-xs font-semibold">
-                        <x-ui.icon name="orders" class="size-4 text-muted" />
-                        My orders
+                    <a href="{{ route('favourites.index') }}" class="flex items-center gap-2 rounded-xl bg-surface px-3 py-3 text-xs font-semibold">
+                        <x-ui.icon name="heart" class="size-4 text-muted" />
+                        My wishlist
                     </a>
-                    <a href="{{ route('register', ['type' => 'vendor']) }}" class="col-span-2 flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-3 text-xs font-semibold text-brand-700">
+                    <a href="{{ route('vendors.apply') }}" class="col-span-2 flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-3 text-xs font-semibold text-brand-700">
                         <x-ui.icon name="store" class="size-4" />
                         Become a verified vendor
                     </a>

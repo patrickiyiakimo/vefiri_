@@ -80,7 +80,7 @@
         </div>
 
         <a
-            href="{{ route('register', ['type' => 'vendor']) }}"
+            href="{{ route('vendors.index') }}"
             class="ml-2 hidden shrink-0 items-center gap-1.5 border-l border-line pl-4 text-xs font-semibold text-ink-soft transition hover:text-brand-600 xl:flex"
         >
             <x-ui.icon name="badge-check" class="size-4 text-brand-600" />

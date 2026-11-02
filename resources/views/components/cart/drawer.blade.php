@@ -14,7 +14,7 @@
             <div class="flex items-center gap-2">
                 <h2 id="cart-drawer-title" class="text-lg font-bold">Shopping cart</h2>
                 <span class="rounded-full bg-brand-50 px-2 py-0.5 text-2xs font-bold text-brand-700">
-                    <span data-cart-count>0</span> items
+                    <span data-cart-count>{{ $cartCount ?? 0 }}</span> items
                 </span>
             </div>
 
@@ -71,7 +71,7 @@
         <x-cart.item :item="[
             'id' => '',
             'title' => '',
-            'image' => 'images/products/headphones.avif',
+            'image' => 'images/products/headphones.webp',
             'price' => 0,
             'quantity' => 1,
             'store' => '',

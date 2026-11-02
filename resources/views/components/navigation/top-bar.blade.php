@@ -16,7 +16,7 @@
         <div class="flex items-center gap-3 sm:gap-4">
             <a href="{{ route('home') }}" class="hidden transition hover:text-ink xl:inline">Vefiri Business</a>
             <a
-                href="{{ route('register', ['type' => 'vendor']) }}"
+                href="{{ route('vendors.index') }}"
                 class="hidden items-center gap-1 font-semibold text-brand-700 transition hover:text-brand-800 md:inline-flex"
             >
                 <x-ui.icon name="badge-check" class="size-3.5" />

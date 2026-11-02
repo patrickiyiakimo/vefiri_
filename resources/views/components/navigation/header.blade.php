@@ -49,8 +49,8 @@
                             aria-expanded="false"
                             class="flex items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-surface"
                         >
-                            <span class="flex size-8 items-center justify-center rounded-full bg-brand-50 text-xs font-black text-brand-700">
-                                {{ str(auth()->user()->name)->substr(0, 1)->upper() }}
+                            <span class="flex size-8 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+                                <x-ui.icon name="user" class="size-4" />
                             </span>
                             <span class="hidden flex-col text-left lg:flex">
                                 <span class="text-2xs text-muted">Hello,</span>
@@ -71,14 +71,20 @@
                                     <x-ui.icon name="orders" class="size-4" />
                                     My orders
                                 </a>
-                                <a href="{{ route('home') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
+                                <a href="{{ route('favourites.index') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
                                     <x-ui.icon name="heart" class="size-4" />
                                     My wishlist
                                 </a>
-                                <a href="{{ route('register', ['type' => 'vendor']) }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
+                                <a href="{{ route('vendors.apply') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
                                     <x-ui.icon name="store" class="size-4" />
                                     Become a vendor
                                 </a>
+                                @if (auth()->user()->isAdmin())
+                                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
+                                        <x-ui.icon name="shield" class="size-4" />
+                                        Admin dashboard
+                                    </a>
+                                @endif
                             </div>
 
                             <form method="POST" action="{{ route('logout') }}" class="mt-3 border-t border-line pt-3">
@@ -132,7 +138,7 @@
                         <span
                             data-cart-count
                             class="absolute -top-1.5 -right-2 flex min-w-4 items-center justify-center rounded-full bg-brand-600 px-1 py-0.5 text-[9px] font-bold leading-none text-white ring-2 ring-white"
-                        >0</span>
+                        >{{ $cartCount ?? 0 }}</span>
                     </span>
                     <span class="hidden flex-col text-left sm:flex">
                         <span class="text-2xs text-muted">My</span>
