@@ -56,7 +56,10 @@
                     <ul class="mt-3 space-y-2">
                         @foreach ($column['links'] as $link)
                             <li>
-                                <a href="{{ route('home') }}" class="text-2xs leading-5 text-muted transition hover:text-brand-600">
+                                <a
+                                    href="{{ $link === 'Become a verified vendor' ? route('vendors.index') : route('home') }}"
+                                    class="text-2xs leading-5 text-muted transition hover:text-brand-600"
+                                >
                                     {{ $link }}
                                 </a>
                             </li>

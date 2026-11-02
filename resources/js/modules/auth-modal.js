@@ -174,6 +174,10 @@ export function initAuthModal() {
         }
     };
 
+    document.addEventListener('vefiri:open-auth', (event) => {
+        open(event.detail?.view === 'register' ? 'register' : 'login');
+    });
+
     modal.querySelectorAll('[data-auth-form]').forEach((form) => {
         form.addEventListener('submit', (event) => {
             event.preventDefault();

@@ -4,7 +4,7 @@
     <x-ui.container>
         <div class="relative overflow-hidden rounded-2xl bg-[#171717] px-5 py-6 text-white shadow-card sm:px-8 sm:py-8 lg:px-10">
             <div class="pointer-events-none absolute inset-0" aria-hidden="true">
-                <div class="absolute -top-24 right-16 size-72 rounded-full bg-brand-600/20 blur-3xl"></div>
+                <!-- <div class="absolute -top-24 right-16 size-72 rounded-full bg-brand-600/20 blur-3xl"></div> -->
                 <div class="absolute -bottom-28 -left-10 size-64 rounded-full border-[32px] border-white/5"></div>
                 <div class="absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-brand-500/10 to-transparent"></div>
             </div>
@@ -21,7 +21,7 @@
                     </h2>
 
                     <p class="mt-2 max-w-lg text-xs leading-5 text-white/60 sm:text-sm sm:leading-6">
-                        Join 100 million+ shoppers and be the first to know about new deals, exclusive coupons and product drops.
+                        Join 20K+ shoppers and be the first to know about new deals, exclusive coupons and product drops.
                     </p>
 
                     <div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-2xs text-white/60">

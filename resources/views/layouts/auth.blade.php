@@ -10,7 +10,7 @@
     <meta name="description" content="@yield('description', 'Sign in or create your Vefiri account to shop quality products with nationwide delivery and buyer protection.')">
     <meta name="robots" content="noindex, nofollow">
 
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <meta property="og:site_name" content="Vefiri">
     <meta property="og:title" content="@yield('title', 'Account | Vefiri')">
     <meta property="og:description" content="@yield('description', 'Sign in or create your Vefiri account.')">

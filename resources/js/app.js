@@ -5,6 +5,7 @@ import { initCart } from './modules/cart';
 import { initCountdowns } from './modules/countdown';
 import { initDrawers } from './modules/drawer';
 import { initDropdowns } from './modules/dropdown';
+import { initLoadMore } from './modules/load-more';
 import { initNewsletters } from './modules/newsletter';
 import { initSearch } from './modules/search';
 import { initTabs } from './modules/tabs';
@@ -18,6 +19,7 @@ const initStorefront = () => {
     initAuthModal();
     initCarousels();
     initTabs();
+    initLoadMore();
     initCart();
     initSearch();
     initWishlist();
