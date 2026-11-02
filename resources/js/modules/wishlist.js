@@ -1,6 +1,6 @@
 import { showToast } from './toast';
 
-const STORAGE_KEY = 'aliexpress-clone-wishlist';
+const STORAGE_KEY = 'vefiri-wishlist';
 
 const readWishlist = () => {
     try {

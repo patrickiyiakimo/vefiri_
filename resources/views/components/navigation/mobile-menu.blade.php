@@ -28,12 +28,29 @@
 
         <div class="flex-1 overflow-y-auto px-4 py-4">
             <div class="rounded-2xl bg-gradient-to-br from-[#fff2e8] to-[#ffd9bf] p-4">
-                <p class="text-sm font-bold">Welcome to AliExpress</p>
-                <p class="mt-1 text-2xs text-ink-soft">Sign in for member prices and exclusive coupons.</p>
-                <div class="mt-3 grid grid-cols-2 gap-2">
-                    <x-buttons.primary href="{{ route('home') }}" size="sm" class="w-full">Sign in</x-buttons.primary>
-                    <x-buttons.secondary href="{{ route('home') }}" size="sm" class="w-full">Register</x-buttons.secondary>
-                </div>
+                @auth
+                    <div class="flex items-center gap-3">
+                        <span class="flex size-10 items-center justify-center rounded-full bg-white text-sm font-black text-brand-700">
+                            {{ str(auth()->user()->name)->substr(0, 1)->upper() }}
+                        </span>
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-bold">Hello, {{ auth()->user()->name }}</p>
+                            <p class="truncate text-2xs text-ink-soft">{{ auth()->user()->email }}</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ route('logout') }}" class="mt-3">
+                        @csrf
+                        <x-buttons.secondary type="submit" size="sm" class="w-full">Sign out</x-buttons.secondary>
+                    </form>
+                @else
+                    <p class="text-sm font-bold">Welcome to Vefiri</p>
+                    <p class="mt-1 text-2xs text-ink-soft">Sign in for member prices and exclusive coupons.</p>
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <x-buttons.primary type="button" data-auth-open="login" data-drawer-close size="sm" class="w-full">Sign in</x-buttons.primary>
+                        <x-buttons.secondary type="button" data-auth-open="register" data-drawer-close size="sm" class="w-full">Register</x-buttons.secondary>
+                    </div>
+                @endauth
             </div>
 
             <nav aria-label="Quick links" class="mt-4">
@@ -53,6 +70,10 @@
                     <a href="{{ route('home') }}" class="flex items-center gap-2 rounded-xl bg-surface px-3 py-3 text-xs font-semibold">
                         <x-ui.icon name="orders" class="size-4 text-muted" />
                         My orders
+                    </a>
+                    <a href="{{ route('register', ['type' => 'vendor']) }}" class="col-span-2 flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-3 text-xs font-semibold text-brand-700">
+                        <x-ui.icon name="store" class="size-4" />
+                        Become a verified vendor
                     </a>
                 </div>
             </nav>
@@ -77,17 +98,17 @@
             </nav>
 
             <div class="mt-5 rounded-xl border border-line bg-[#fafafa] p-3">
-                <a href="{{ route('home') }}" class="flex items-center justify-between text-xs">
+                <a href="{{ route('search') }}" class="flex items-center justify-between text-xs">
                     <span class="flex items-center gap-2">
                         <x-ui.icon name="location" class="size-4 text-muted" />
-                        Ship to: United States
+                        Ship to: Nationwide
                     </span>
                     <x-ui.icon name="chevron-right" class="size-3.5 text-muted" />
                 </a>
-                <a href="{{ route('home') }}" class="mt-3 flex items-center justify-between text-xs">
+                <a href="{{ route('search') }}" class="mt-3 flex items-center justify-between text-xs">
                     <span class="flex items-center gap-2">
                         <x-ui.icon name="globe" class="size-4 text-muted" />
-                        English / USD
+                        English / NGN
                     </span>
                     <x-ui.icon name="chevron-right" class="size-3.5 text-muted" />
                 </a>

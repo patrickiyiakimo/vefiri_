@@ -121,7 +121,7 @@
                                                 class="aspect-square w-full rounded-xl object-cover"
                                             >
                                             <div class="flex items-center justify-between gap-1 px-1 pt-1.5 pb-0.5">
-                                                <span class="text-[11px] font-extrabold text-ink">${{ number_format($product['price'], 2) }}</span>
+                                                <span class="text-[11px] font-extrabold text-ink">₦{{ number_format($product['price']) }}</span>
                                                 <x-badges.discount :percentage="$product['discount']" />
                                             </div>
                                         </div>
@@ -161,15 +161,26 @@
                             <x-ui.icon name="user" class="size-4.5" />
                         </span>
                         <div>
-                            <p class="text-xs font-bold">Welcome!</p>
-                            <p class="text-2xs text-muted">Sign in for a better experience</p>
+                            @auth
+                                <p class="text-xs font-bold">Hello, {{ str(auth()->user()->name)->limit(18) }}</p>
+                                <p class="text-2xs text-muted">Your Vefiri account</p>
+                            @else
+                                <p class="text-xs font-bold">Welcome!</p>
+                                <p class="text-2xs text-muted">Sign in for a better experience</p>
+                            @endauth
                         </div>
                     </div>
 
-                    <div class="mt-3 grid grid-cols-2 gap-2">
-                        <x-buttons.primary href="{{ route('home') }}" size="sm" class="w-full">Sign in</x-buttons.primary>
-                        <x-buttons.secondary href="{{ route('home') }}" size="sm" class="w-full">Register</x-buttons.secondary>
-                    </div>
+                    @guest
+                        <div class="mt-3 grid grid-cols-2 gap-2">
+                            <x-buttons.primary type="button" data-auth-open="login" size="sm" class="w-full">Sign in</x-buttons.primary>
+                            <x-buttons.secondary type="button" data-auth-open="register" size="sm" class="w-full">Register</x-buttons.secondary>
+                        </div>
+                    @else
+                        <a href="{{ route('home') }}" class="mt-3 flex h-8 w-full items-center justify-center rounded-full border border-line bg-white text-xs font-semibold text-ink transition hover:border-ink">
+                            My account
+                        </a>
+                    @endguest
 
                     <div class="mt-3 flex items-center justify-between text-2xs text-muted">
                         <span class="inline-flex items-center gap-1">
@@ -188,16 +199,16 @@
                         New user coupon
                     </span>
                     <div class="mt-2 flex items-end gap-2">
-                        <span class="text-3xl leading-none font-black tracking-tight text-brand-700">$3</span>
+                        <span class="text-3xl leading-none font-black tracking-tight text-brand-700">₦5,000</span>
                         <span class="pb-1 text-xs font-bold text-brand-800">OFF</span>
                     </div>
-                    <p class="mt-1 text-2xs text-ink-soft">On orders over $15</p>
+                    <p class="mt-1 text-2xs text-ink-soft">On orders over ₦25,000</p>
                     <button
                         type="button"
-                        data-toast="Coupon NEW3 added to your account."
+                        data-toast="Coupon NEW5 added to your account."
                         class="absolute right-3 bottom-3 rounded-full bg-ink px-3 py-1.5 text-[10px] font-bold text-white transition hover:bg-brand-600"
                     >
-                        Collect · NEW3
+                        Collect coupon NEW5
                     </button>
                 </div>
 

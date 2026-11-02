@@ -17,7 +17,7 @@
                     </span>
 
                     <h2 id="newsletter-heading" class="mt-3 max-w-xl text-2xl leading-tight font-black tracking-tight sm:text-3xl">
-                        Get $5 off your next order
+                        Get ₦8,000 off your next order
                     </h2>
 
                     <p class="mt-2 max-w-lg text-xs leading-5 text-white/60 sm:text-sm sm:leading-6">
@@ -47,10 +47,11 @@
                     <x-inputs.newsletter class="mt-4" />
 
                     <p class="mt-3 text-[10px] leading-4 text-white/40">
-                        By subscribing, you agree to receive marketing emails from AliExpress. Unsubscribe anytime.
+                        By subscribing, you agree to receive marketing emails from Vefiri. Unsubscribe anytime.
                     </p>
                 </div>
             </div>
         </div>
     </x-ui.container>
 </section>
+

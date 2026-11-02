@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
@@ -11,10 +12,7 @@ class HomeController extends Controller
         $products = $this->products();
 
         return view('home', [
-            'menuCategories' => $this->menuCategories(),
-            'navLinks' => $this->navLinks(),
-            'searchCategories' => $this->searchCategories(),
-            'searchSuggestions' => $this->searchSuggestions(),
+            ...$this->sharedData(),
             'heroSlides' => $this->heroSlides($products),
             'quickCategories' => $this->quickCategories(),
             'dealTabs' => $this->dealTabs($products),
@@ -38,9 +36,71 @@ class HomeController extends Controller
                 ['value' => '10', 'label' => 'Local warehouses'],
                 ['value' => '24H', 'label' => 'Sourcing support'],
             ],
-            'footerColumns' => $this->footerColumns(),
-            'paymentMethods' => ['Visa', 'Mastercard', 'PayPal', 'Apple Pay', 'Google Pay', 'Klarna'],
         ]);
+    }
+
+    public function search(Request $request): View
+    {
+        $query = trim((string) $request->query('q', ''));
+        $selectedCategory = trim((string) $request->query('category', ''));
+        $terms = preg_split('/\s+/', mb_strtolower($query), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $products = collect($this->products())
+            ->map(fn (array $product): array => [
+                ...$product,
+                'category' => $this->productCategory($product['id']),
+            ])
+            ->filter(function (array $product) use ($terms, $selectedCategory): bool {
+                $categoryMatches = $selectedCategory === ''
+                    || $selectedCategory === 'All categories'
+                    || $product['category'] === $selectedCategory;
+
+                if (! $categoryMatches) {
+                    return false;
+                }
+
+                if ($terms === []) {
+                    return true;
+                }
+
+                $haystack = mb_strtolower(implode(' ', [
+                    $product['title'],
+                    $product['store'],
+                    $product['category'],
+                    $product['id'],
+                ]));
+
+                foreach ($terms as $term) {
+                    if (! str_contains($haystack, $term)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })
+            ->values();
+
+        return view('search', [
+            ...$this->sharedData(),
+            'products' => $products,
+            'query' => $query,
+            'selectedCategory' => $selectedCategory,
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function sharedData(): array
+    {
+        return [
+            'menuCategories' => $this->menuCategories(),
+            'navLinks' => $this->navLinks(),
+            'searchCategories' => $this->searchCategories(),
+            'searchSuggestions' => $this->searchSuggestions(),
+            'footerColumns' => $this->footerColumns(),
+            'paymentMethods' => ['Visa', 'Mastercard', 'Verve', 'Paystack', 'Flutterwave', 'Bank Transfer'],
+        ];
     }
 
     /**
@@ -138,6 +198,7 @@ class HomeController extends Controller
             'Sports & Outdoors',
             'Toys & Games',
             'Tools',
+            'Automobiles',
         ];
     }
 
@@ -344,14 +405,14 @@ class HomeController extends Controller
         return [
             [
                 'eyebrow' => 'New here?',
-                'title' => 'Get $3 off your first order',
-                'description' => 'Use code NEW3 at checkout. Minimum spend $15.',
+                'title' => 'Get ₦5,000 off your first order',
+                'description' => 'Use code NEW5 at checkout. Minimum spend ₦25,000.',
                 'cta' => 'Claim coupon',
                 'theme' => 'from-[#fff1e8] via-[#ffe4d1] to-[#ffd0ad]',
                 'icon' => 'gift',
             ],
             [
-                'eyebrow' => 'AliExpress Choice',
+                'eyebrow' => 'Vefiri Choice',
                 'title' => 'Free shipping, every day',
                 'description' => 'Top-rated products with free delivery and easy returns.',
                 'cta' => 'Shop Choice',
@@ -359,7 +420,7 @@ class HomeController extends Controller
                 'icon' => 'truck',
             ],
             [
-                'eyebrow' => 'AliExpress Business',
+                'eyebrow' => 'Vefiri Business',
                 'title' => 'Buy more, save more',
                 'description' => 'Volume pricing, dedicated support and tax exemptions.',
                 'cta' => 'Explore business',
@@ -384,7 +445,7 @@ class HomeController extends Controller
      */
     private function products(): array
     {
-        return [
+        $products = [
             'face-massager' => [
                 'id' => 'face-massager',
                 'title' => '1-5pcs Silicone Face Lifting Massager V-Line Muscle Trainer Double Chin Reducer Facial Yoga Tool',
@@ -876,6 +937,35 @@ class HomeController extends Controller
                 'badge' => 'Best seller',
             ],
         ];
+
+        return array_map(fn (array $product): array => [
+            ...$product,
+            'price' => $this->toNaira($product['price']),
+            'old_price' => $this->toNaira($product['old_price']),
+        ], $products);
+    }
+
+    private function toNaira(float $amount): int
+    {
+        return (int) round($amount * 1550, -2);
+    }
+
+    private function productCategory(string $id): string
+    {
+        return match ($id) {
+            'face-massager', 'skincare', 'perfume', 'cosmetics' => 'Beauty & Health',
+            'wrench-set', 'tools' => 'Tools',
+            'card-sticker' => 'Phones & Accessories',
+            'slippers', 'fanny-pack', 'bag', 'sunglasses', 'heels', 'jewelry', 'women-fashion' => "Women's Fashion",
+            'headphones', 'led-strip', 'speaker', 'keyboard', 'laptop', 'drone', 'camera', 'gaming', 'gan-charger' => 'Consumer Electronics',
+            'watch', 'men-fashion' => "Men's Fashion",
+            'sneakers' => 'Sports & Outdoors',
+            'car-vacuum', 'auto' => 'Automobiles',
+            'chair', 'garden', 'pets', 'appliances' => 'Home & Garden',
+            'smartphone' => 'Phones & Accessories',
+            'toys', 'baby' => 'Toys & Games',
+            default => 'All categories',
+        };
     }
 
     /**
@@ -894,7 +984,7 @@ class HomeController extends Controller
             ],
             [
                 'title' => 'Collaborate with us',
-                'links' => ['AliExpress Business', 'Seller center', 'Affiliate program', 'Partnerships', 'Press office'],
+                'links' => ['Vefiri Business', 'Become a verified vendor', 'Affiliate program', 'Partnerships', 'Press office'],
             ],
             [
                 'title' => 'Stay connected',

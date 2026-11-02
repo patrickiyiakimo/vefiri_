@@ -3,10 +3,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#f04400">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'AliExpress - Affordable Online Shopping')</title>
-    <meta name="description" content="@yield('description', 'Shop millions of products at affordable prices with free shipping on Choice items, buyer protection and easy returns.')">
+    <title>@yield('title', 'Vefiri | Shop quality products with nationwide delivery')</title>
+    <meta name="description" content="@yield('description', 'Shop millions of products at affordable prices with nationwide delivery in Nigeria, buyer protection and easy returns.')">
+    <meta name="application-name" content="Vefiri">
+
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    <meta property="og:site_name" content="Vefiri">
+    <meta property="og:title" content="@yield('title', 'Vefiri | Shop quality products with nationwide delivery')">
+    <meta property="og:description" content="@yield('description', 'Shop millions of products at affordable prices with nationwide delivery in Nigeria.')">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title', 'Vefiri | Shop quality products with nationwide delivery')">
+    <meta name="twitter:description" content="@yield('description', 'Shop millions of products at affordable prices with nationwide delivery in Nigeria.')">
 
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -40,6 +54,7 @@
     />
 
     <x-navigation.mobile-menu :menu-categories="$menuCategories" />
+    <x-auth.modal />
     <x-cart.drawer />
 
     <div

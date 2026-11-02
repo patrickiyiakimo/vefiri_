@@ -83,9 +83,9 @@
                     <x-ui.icon name="globe" class="size-3.5" />
                     <span>English</span>
                     <span class="text-line">|</span>
-                    <span>USD</span>
+                    <span>NGN</span>
                     <span class="text-line">|</span>
-                    <span>United States</span>
+                    <span>Nigeria</span>
                 </div>
             </div>
 
@@ -97,7 +97,7 @@
                     <a href="{{ route('home') }}" class="transition hover:text-ink">Sitemap</a>
                     <a href="{{ route('home') }}" class="transition hover:text-ink">Cookie Preferences</a>
                 </div>
-                <p>© 2010-{{ date('Y') }} AliExpress Clone. All rights reserved.</p>
+                <p>© {{ date('Y') }} Vefiri. All rights reserved.</p>
             </div>
         </div>
     </x-ui.container>
