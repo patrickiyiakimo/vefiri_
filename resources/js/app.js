@@ -1,3 +1,4 @@
+import { initAuthModal } from './modules/auth-modal';
 import { initBackToTop } from './modules/back-to-top';
 import { initCarousels } from './modules/carousel';
 import { initCart } from './modules/cart';
@@ -14,6 +15,7 @@ const initStorefront = () => {
     initToasts();
     initDropdowns();
     initDrawers();
+    initAuthModal();
     initCarousels();
     initTabs();
     initCart();

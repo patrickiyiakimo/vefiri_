@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <linearGradient id="vefiri" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ff8a00"/>
+            <stop offset="1" stop-color="#cc3200"/>
+        </linearGradient>
+    </defs>
+    <rect width="64" height="64" rx="16" fill="url(#vefiri)"/>
+    <path d="M16 18h9.2l6.8 20.4L38.8 18H48L37.6 48h-11L16 18Z" fill="#fff"/>
+    <circle cx="48" cy="18" r="4" fill="#ffd60a"/>
+</svg>

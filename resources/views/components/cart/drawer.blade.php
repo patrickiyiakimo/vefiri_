@@ -48,7 +48,7 @@
         <footer data-cart-footer class="hidden border-t border-line bg-[#fafafa] px-5 py-4">
             <div class="flex items-center justify-between text-xs">
                 <span class="text-muted">Subtotal</span>
-                <span data-cart-subtotal class="text-xl font-black text-brand-600">$0.00</span>
+                <span data-cart-subtotal class="text-xl font-black text-brand-600">₦0</span>
             </div>
             <p class="mt-1 flex items-center gap-1.5 text-2xs text-choice-dark">
                 <x-ui.icon name="truck" class="size-3.5" />

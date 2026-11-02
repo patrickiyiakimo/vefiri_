@@ -15,7 +15,7 @@
                 <div>
                     <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-2xs font-semibold tracking-[0.08em] text-[#aebbe8] uppercase ring-1 ring-white/10">
                         <x-ui.icon name="briefcase" class="size-3" />
-                        AliExpress Business
+                        Vefiri Business
                     </span>
 
                     <h2 id="business-heading" class="mt-3 max-w-xl text-2xl leading-tight font-black tracking-tight sm:text-3xl">
@@ -36,11 +36,11 @@
                     </div>
 
                     <div class="mt-5 flex flex-wrap items-center gap-3">
-                        <x-buttons.secondary href="{{ route('home') }}" class="border-white bg-white text-[#0e1838] hover:bg-[#ffe4d4] hover:text-[#0e1838]">
+                        <x-buttons.secondary href="{{ route('register', ['type' => 'vendor']) }}" class="border-white bg-white text-[#0e1838] hover:bg-[#ffe4d4] hover:text-[#0e1838]">
                             Start sourcing
                             <x-ui.icon name="arrow-right" class="size-4" />
                         </x-buttons.secondary>
-                        <a href="{{ route('home') }}" class="text-xs font-semibold text-white/80 underline decoration-white/30 underline-offset-4 transition hover:text-white">
+                        <a href="{{ route('register', ['type' => 'vendor']) }}" class="text-xs font-semibold text-white/80 underline decoration-white/30 underline-offset-4 transition hover:text-white">
                             Learn more
                         </a>
                     </div>
@@ -58,3 +58,4 @@
         </div>
     </x-ui.container>
 </section>
+

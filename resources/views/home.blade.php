@@ -1,6 +1,7 @@
 @extends('layouts.storefront')
 
-@section('title', 'AliExpress - Affordable Chinese Stores & Free Shipping')
+@section('title', 'Vefiri | Shop quality products with nationwide delivery')
+@section('description', 'Discover trending products, everyday essentials and exclusive deals on Vefiri. Enjoy secure payments, buyer protection and delivery nationwide across Nigeria.')
 
 @section('content')
     <x-sections.hero

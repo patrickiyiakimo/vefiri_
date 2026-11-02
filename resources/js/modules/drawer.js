@@ -62,9 +62,11 @@ export function closeDrawer(drawer = activeDrawer, restoreFocus = true) {
             return;
         }
 
-        document.body.style.overflow = '';
+        if (!document.querySelector('[data-auth-modal][data-open="true"]')) {
+            document.body.style.overflow = '';
+        }
 
-        if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
+        if (restoreFocus && !document.querySelector('[data-auth-modal][data-open="true"]') && lastFocusedElement instanceof HTMLElement) {
             lastFocusedElement.focus({ preventScroll: true });
         }
     }, 300);

@@ -1,11 +1,12 @@
 import { openDrawer } from './drawer';
 import { showToast } from './toast';
 
-const STORAGE_KEY = 'aliexpress-clone-cart';
+const STORAGE_KEY = 'vefiri-cart';
 
-const currency = new Intl.NumberFormat('en-US', {
+const currency = new Intl.NumberFormat('en-NG', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'NGN',
+    maximumFractionDigits: 0,
 });
 
 const readCart = () => {

@@ -51,7 +51,7 @@
             </div>
 
             <span data-cart-item-price class="text-sm font-bold text-brand-600">
-                ${{ number_format($item['price'] * $item['quantity'], 2) }}
+                ₦{{ number_format($item['price'] * $item['quantity']) }}
             </span>
         </div>
     </div>
