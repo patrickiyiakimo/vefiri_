@@ -73,5 +73,7 @@
     >
         <x-ui.icon name="chevron-up" class="size-5" />
     </button>
+
+    <script src="//code.jivosite.com/widget/vlvNzUXyLG" async></script>
 </body>
 </html>
