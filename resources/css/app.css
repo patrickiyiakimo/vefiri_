@@ -95,6 +95,42 @@
     [data-wishlist][data-active='true'] [data-wishlist-icon] {
         fill: currentColor;
     }
+
+    .legal-prose {
+        @apply text-sm leading-7 text-ink-soft;
+    }
+
+    .legal-prose > * + * {
+        @apply mt-4;
+    }
+
+    .legal-prose h2 {
+        @apply mt-8 text-base font-black tracking-tight text-ink;
+    }
+
+    .legal-prose h3 {
+        @apply mt-5 text-sm font-bold text-ink;
+    }
+
+    .legal-prose ul {
+        @apply list-disc space-y-2 pl-5;
+    }
+
+    .legal-prose ol {
+        @apply list-decimal space-y-2 pl-5;
+    }
+
+    .legal-prose a {
+        @apply font-semibold text-brand-600 underline decoration-brand-200 underline-offset-2 transition hover:text-brand-700;
+    }
+
+    .legal-prose strong {
+        @apply font-semibold text-ink;
+    }
+
+    .legal-prose .legal-note {
+        @apply rounded-xl border border-line bg-surface px-4 py-3 text-xs leading-6;
+    }
 }
 
 @keyframes toast-enter {

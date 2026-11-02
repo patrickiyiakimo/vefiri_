@@ -11,7 +11,7 @@
         'text-lg' => $size === 'md',
         'text-2xl' => $size === 'lg',
     ])>
-        <span class="text-[0.72em]">₦</span>{{ number_format($amount) }}
+        <span class="text-[0.72em]">&#8358;</span>{{ number_format($amount) }}
     </span>
 
     @if ($old && $old > $amount)
@@ -20,7 +20,7 @@
             'text-[10px]' => $size === 'sm',
             'text-xs' => $size !== 'sm',
         ])>
-            ₦{{ number_format($old) }}
+            &#8358;{{ number_format($old) }}
         </span>
     @endif
 </span>

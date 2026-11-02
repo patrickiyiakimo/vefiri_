@@ -81,9 +81,9 @@
         <input type="checkbox" required class="mt-0.5 size-4 shrink-0 rounded border-line text-brand-600 focus:ring-brand-500">
         <span>
             I agree to Vefiri's
-            <a href="{{ route('home') }}" class="font-semibold text-brand-600 hover:text-brand-700">Terms of Use</a>
+            <a href="{{ route('pages.terms') }}" class="font-semibold text-brand-600 hover:text-brand-700">Terms & Conditions</a>
             and
-            <a href="{{ route('home') }}" class="font-semibold text-brand-600 hover:text-brand-700">Privacy Policy</a>.
+            <a href="{{ route('pages.privacy') }}" class="font-semibold text-brand-600 hover:text-brand-700">Privacy Policy</a>.
         </span>
     </label>
 

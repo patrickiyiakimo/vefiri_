@@ -97,9 +97,9 @@
                 <span class="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
                     <a href="{{ route('home') }}" class="transition hover:text-ink">Help Center</a>
                     <span class="text-line">|</span>
-                    <a href="{{ route('home') }}" class="transition hover:text-ink">Privacy Policy</a>
+                    <a href="{{ route('pages.privacy') }}" class="transition hover:text-ink">Privacy Policy</a>
                     <span class="text-line">|</span>
-                    <a href="{{ route('home') }}" class="transition hover:text-ink">Terms of Use</a>
+                    <a href="{{ route('pages.terms') }}" class="transition hover:text-ink">Terms & Conditions</a>
                 </span>
             </footer>
         </div>

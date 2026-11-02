@@ -75,10 +75,17 @@
                                     <x-ui.icon name="heart" class="size-4" />
                                     My wishlist
                                 </a>
-                                <a href="{{ route('vendors.apply') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
-                                    <x-ui.icon name="store" class="size-4" />
-                                    Become a vendor
-                                </a>
+                                @if (auth()->user()->isVendor())
+                                    <a href="{{ route('vendor.dashboard') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
+                                        <x-ui.icon name="store" class="size-4" />
+                                        Vendor dashboard
+                                    </a>
+                                @else
+                                    <a href="{{ route('vendors.apply') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
+                                        <x-ui.icon name="store" class="size-4" />
+                                        Become a vendor
+                                    </a>
+                                @endif
                                 @if (auth()->user()->isAdmin())
                                     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
                                         <x-ui.icon name="shield" class="size-4" />

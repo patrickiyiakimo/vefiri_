@@ -19,7 +19,7 @@
             <x-ui.trust-item
                 icon="rotate"
                 title="Easy returns"
-                description="Return within 15 days of delivery"
+                description="Return eligible items within 7-15 days"
             />
             <x-ui.trust-item
                 icon="headset"
@@ -55,9 +55,17 @@
                     <h2 class="text-xs font-bold text-ink">{{ $column['title'] }}</h2>
                     <ul class="mt-3 space-y-2">
                         @foreach ($column['links'] as $link)
+                            @php
+                                $linkHref = match ($link) {
+                                    'Returns & refunds' => route('pages.returns'),
+                                    'Become a verified vendor' => route('vendors.index'),
+                                    'Help Center' => route('pages.returns'),
+                                    default => route('home'),
+                                };
+                            @endphp
                             <li>
                                 <a
-                                    href="{{ $link === 'Become a verified vendor' ? route('vendors.index') : route('home') }}"
+                                    href="{{ $linkHref }}"
                                     class="text-2xs leading-5 text-muted transition hover:text-brand-600"
                                 >
                                     {{ $link }}
@@ -95,8 +103,9 @@
             <div class="flex flex-col gap-3 border-t border-line pt-4 text-[10px] leading-5 text-muted lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex flex-wrap gap-x-3 gap-y-1">
                     <a href="{{ route('home') }}" class="transition hover:text-ink">Intellectual Property Protection</a>
-                    <a href="{{ route('home') }}" class="transition hover:text-ink">Privacy Policy</a>
-                    <a href="{{ route('home') }}" class="transition hover:text-ink">Terms of Use</a>
+                    <a href="{{ route('pages.privacy') }}" class="transition hover:text-ink">Privacy Policy</a>
+                    <a href="{{ route('pages.terms') }}" class="transition hover:text-ink">Terms & Conditions</a>
+                    <a href="{{ route('pages.returns') }}" class="transition hover:text-ink">Returns & Refunds</a>
                     <a href="{{ route('home') }}" class="transition hover:text-ink">Sitemap</a>
                     <a href="{{ route('home') }}" class="transition hover:text-ink">Cookie Preferences</a>
                 </div>

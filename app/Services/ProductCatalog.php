@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Product;
+
 final class ProductCatalog
 {
     /** @var array<string, array<string, mixed>>|null */
@@ -12,7 +14,43 @@ final class ProductCatalog
      */
     public function all(): array
     {
-        return $this->products ??= $this->build();
+        return $this->products ??= [
+            ...$this->build(),
+            ...$this->vendorProducts(),
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function vendorProducts(?int $limit = null): array
+    {
+        return Product::query()
+            ->with('vendor')
+            ->active()
+            ->latest()
+            ->when($limit !== null, fn ($query) => $query->limit($limit))
+            ->get()
+            ->mapWithKeys(fn (Product $product): array => [
+                $product->catalogKey() => [
+                    'id' => $product->catalogKey(),
+                    'title' => $product->name,
+                    'description' => $product->description,
+                    'image' => 'storage/'.$product->image_path,
+                    'price' => $product->price,
+                    'old_price' => $product->compare_price,
+                    'discount' => $product->discountPercentage(),
+                    'rating' => 0,
+                    'sold' => null,
+                    'choice' => false,
+                    'free_shipping' => false,
+                    'store' => $product->vendor->store_name,
+                    'badge' => 'New',
+                    'category' => $product->category,
+                    'is_vendor_product' => true,
+                ],
+            ])
+            ->all();
     }
 
     /**
@@ -38,6 +76,12 @@ final class ProductCatalog
 
     public function category(string $key): string
     {
+        $product = $this->all()[$key] ?? null;
+
+        if (is_array($product) && isset($product['category'])) {
+            return $product['category'];
+        }
+
         return match ($key) {
             'face-massager', 'skincare', 'perfume', 'cosmetics' => 'Beauty & Health',
             'wrench-set', 'tools' => 'Tools',

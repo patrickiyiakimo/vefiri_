@@ -43,10 +43,16 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('vendors.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 transition hover:text-brand-700">
-                            View verified vendors
-                            <x-ui.icon name="arrow-right" class="size-3.5" />
-                        </a>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <x-buttons.primary href="{{ route('vendor.dashboard') }}" size="sm">
+                                <x-ui.icon name="store" class="size-3.5" />
+                                Vendor dashboard
+                            </x-buttons.primary>
+                            <a href="{{ route('vendors.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 transition hover:text-brand-700">
+                                View verified vendors
+                                <x-ui.icon name="arrow-right" class="size-3.5" />
+                            </a>
+                        </div>
                     </div>
 
                     <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
