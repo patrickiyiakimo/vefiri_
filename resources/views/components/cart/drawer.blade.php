@@ -55,7 +55,7 @@
                 Free shipping on eligible Choice items
             </p>
 
-            <x-buttons.primary type="button" data-cart-checkout class="mt-3 w-full">
+            <x-buttons.primary :href="route('checkout.show')" class="mt-3 w-full">
                 Checkout
                 <x-ui.icon name="arrow-right" class="size-4" />
             </x-buttons.primary>

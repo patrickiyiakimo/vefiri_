@@ -2,6 +2,7 @@ import { initAuthModal } from './modules/auth-modal';
 import { initBackToTop } from './modules/back-to-top';
 import { initCarousels } from './modules/carousel';
 import { initCart } from './modules/cart';
+import { initCheckout } from './modules/checkout';
 import { initCountdowns } from './modules/countdown';
 import { initDrawers } from './modules/drawer';
 import { initDropdowns } from './modules/dropdown';
@@ -21,6 +22,7 @@ const initStorefront = () => {
     initTabs();
     initLoadMore();
     initCart();
+    initCheckout();
     initSearch();
     initWishlist();
     initCountdowns();

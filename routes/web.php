@@ -7,9 +7,12 @@ use App\Http\Controllers\Admin\VendorApplicationController as AdminVendorApplica
 use App\Http\Controllers\Admin\VendorController as AdminVendorController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\FavouriteController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaystackWebhookController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Controllers\Vendor\ProductController as VendorProductController;
@@ -24,6 +27,10 @@ Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('pages.p
 Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('pages.terms');
 Route::get('/returns-and-refunds', [PageController::class, 'returns'])->name('pages.returns');
 
+Route::post('/webhooks/paystack', PaystackWebhookController::class)
+    ->middleware('paystack.signature')
+    ->name('webhooks.paystack');
+
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.store');
@@ -37,6 +44,13 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/account', [AccountController::class, 'show'])->name('account.show');
     Route::patch('/account/profile', [AccountController::class, 'updateProfile'])->name('account.profile.update');
     Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
+
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+    Route::post('/checkout', [CheckoutController::class, 'processCheckout'])->name('checkout.store');
+    Route::get('/checkout/callback', [CheckoutController::class, 'callback'])->name('checkout.callback');
 
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');

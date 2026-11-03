@@ -116,7 +116,7 @@
                             <span class="text-xl font-black text-brand-600">₦{{ number_format($cart['subtotal']) }}</span>
                         </div>
 
-                        <x-buttons.primary type="button" data-cart-checkout class="mt-4 w-full">
+                        <x-buttons.primary :href="route('checkout.show')" class="mt-4 w-full">
                             Checkout
                             <x-ui.icon name="arrow-right" class="size-4" />
                         </x-buttons.primary>

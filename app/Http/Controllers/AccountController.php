@@ -18,7 +18,7 @@ class AccountController extends Controller
 
     public function show(Request $request): View
     {
-        $user = $request->user()->loadCount('favourites');
+        $user = $request->user()->loadCount(['favourites', 'orders']);
 
         return view('account.show', [
             ...$this->sharedData(),

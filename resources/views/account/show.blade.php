@@ -45,8 +45,9 @@
                     </div>
                 </div>
 
-                <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                     @foreach ([
+                        ['label' => 'Orders placed', 'value' => number_format($user->orders_count), 'href' => route('orders.index'), 'icon' => 'orders'],
                         ['label' => 'Wishlist items', 'value' => number_format($user->favourites_count), 'href' => route('favourites.index'), 'icon' => 'heart'],
                         ['label' => 'Items in cart', 'value' => number_format($cartQuantity), 'href' => route('cart.index'), 'icon' => 'cart'],
                         ['label' => 'Account type', 'value' => $user->role->label(), 'href' => null, 'icon' => 'shield'],
@@ -165,6 +166,12 @@
                     </header>
 
                     <div class="grid gap-2 px-5 py-4">
+                        <a href="{{ route('orders.index') }}" class="flex items-center gap-3 rounded-xl bg-surface px-4 py-3 transition hover:bg-[#f0f0f0]">
+                            <x-ui.icon name="orders" class="size-4 text-brand-600" />
+                            <span class="flex-1 text-xs font-semibold text-ink">View my orders</span>
+                            <x-ui.icon name="chevron-right" class="size-3.5 text-muted" />
+                        </a>
+
                         <a href="{{ route('favourites.index') }}" class="flex items-center gap-3 rounded-xl bg-surface px-4 py-3 transition hover:bg-[#f0f0f0]">
                             <x-ui.icon name="heart" class="size-4 text-brand-600" />
                             <span class="flex-1 text-xs font-semibold text-ink">View my wishlist</span>

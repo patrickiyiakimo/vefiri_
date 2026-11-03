@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'city',
     'state',
     'description',
+    'subaccount_code',
 ])]
 class Vendor extends Model
 {
@@ -33,5 +34,10 @@ class Vendor extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
     }
 }
