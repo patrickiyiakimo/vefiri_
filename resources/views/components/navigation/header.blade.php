@@ -73,7 +73,7 @@
                                     <x-ui.icon name="user" class="size-4" />
                                     My account
                                 </a>
-                                <a href="{{ route('home') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
+                                <a href="{{ route('orders.index') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-ink-soft hover:bg-surface">
                                     <x-ui.icon name="orders" class="size-4" />
                                     My orders
                                 </a>

@@ -41,6 +41,7 @@
 
                     <div class="mt-3 grid gap-2">
                         <x-buttons.primary href="{{ route('account.show') }}" size="sm" class="w-full">My account</x-buttons.primary>
+                        <x-buttons.secondary href="{{ route('orders.index') }}" size="sm" class="w-full">My orders</x-buttons.secondary>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-buttons.secondary type="submit" size="sm" class="w-full">Sign out</x-buttons.secondary>

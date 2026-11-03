@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsVendor;
+use App\Http\Middleware\VerifyPaystackSignature;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'vendor' => EnsureUserIsVendor::class,
+            'paystack.signature' => VerifyPaystackSignature::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/paystack',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
