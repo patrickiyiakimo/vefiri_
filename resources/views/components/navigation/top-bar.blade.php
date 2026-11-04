@@ -15,13 +15,23 @@
 
         <div class="flex items-center gap-3 sm:gap-4">
             <a href="{{ route('home') }}" class="hidden transition hover:text-ink xl:inline">Vefiri Business</a>
-            <a
-                href="{{ route('vendors.index') }}"
-                class="hidden items-center gap-1 font-semibold text-brand-700 transition hover:text-brand-800 md:inline-flex"
-            >
-                <x-ui.icon name="badge-check" class="size-3.5" />
-                Become a verified vendor
-            </a>
+            @if (auth()->user()?->isVendor())
+                <a
+                    href="{{ route('vendor.dashboard') }}"
+                    class="hidden items-center gap-1 font-semibold text-brand-700 transition hover:text-brand-800 md:inline-flex"
+                >
+                    <x-ui.icon name="store" class="size-3.5" />
+                    Vendor dashboard
+                </a>
+            @else
+                <a
+                    href="{{ route('vendors.index') }}"
+                    class="hidden items-center gap-1 font-semibold text-brand-700 transition hover:text-brand-800 md:inline-flex"
+                >
+                    <x-ui.icon name="badge-check" class="size-3.5" />
+                    Become a verified vendor
+                </a>
+            @endif
             <a href="{{ route('home') }}" class="hidden transition hover:text-ink sm:inline">Help Center</a>
             <a href="{{ route('home') }}" class="hidden items-center gap-1 transition hover:text-ink lg:flex">
                 <x-ui.icon name="download" class="size-3.5" />

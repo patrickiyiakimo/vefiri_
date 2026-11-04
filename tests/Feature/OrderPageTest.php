@@ -20,6 +20,14 @@ class OrderPageTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
+    public function test_the_header_orders_link_points_to_the_customer_orders_page(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('home'))
+            ->assertOk()
+            ->assertSee('href="'.route('orders.index').'"', false);
+    }
+
     public function test_customers_only_see_their_own_orders(): void
     {
         $user = User::factory()->create();

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsVendor;
 use App\Http\Middleware\VerifyPaystackSignature;
@@ -19,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
             'vendor' => EnsureUserIsVendor::class,
             'paystack.signature' => VerifyPaystackSignature::class,
+        ]);
+
+        $middleware->web(append: [
+            EnsureAccountIsActive::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

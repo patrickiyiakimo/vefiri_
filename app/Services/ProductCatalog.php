@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
 
 final class ProductCatalog
 {
@@ -27,6 +28,7 @@ final class ProductCatalog
     {
         return Product::query()
             ->with('vendor')
+            ->whereHas('vendor.user', fn (Builder $query) => $query->notSuspended())
             ->active()
             ->latest()
             ->when($limit !== null, fn ($query) => $query->limit($limit))

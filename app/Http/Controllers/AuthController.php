@@ -61,6 +61,16 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($request->user()->isSuspended()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'These credentials do not match our records. Please contact support for assistance.',
+            ]);
+        }
+
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
 

@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Services\CartService;
 use App\Services\PaystackSplitPaymentService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -186,6 +187,7 @@ class CheckoutController extends Controller
 
         $product = Product::query()
             ->with('vendor')
+            ->whereHas('vendor.user', fn (Builder $query) => $query->notSuspended())
             ->where('slug', $slug)
             ->where('is_active', true)
             ->first();

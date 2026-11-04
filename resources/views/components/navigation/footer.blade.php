@@ -55,6 +55,8 @@
                     <h2 class="text-xs font-bold text-ink">{{ $column['title'] }}</h2>
                     <ul class="mt-3 space-y-2">
                         @foreach ($column['links'] as $link)
+                            @continue($link === 'Become a verified vendor' && auth()->user()?->isVendor())
+
                             @php
                                 $linkHref = match ($link) {
                                     'Returns & refunds' => route('pages.returns'),

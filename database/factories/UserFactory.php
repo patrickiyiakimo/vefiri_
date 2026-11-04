@@ -58,4 +58,11 @@ class UserFactory extends Factory
             'role' => UserRole::Vendor,
         ]);
     }
+
+    public function suspended(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'suspended_at' => now(),
+        ]);
+    }
 }

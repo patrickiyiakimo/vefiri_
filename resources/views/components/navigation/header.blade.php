@@ -130,7 +130,7 @@
                 @endauth
 
                 <a
-                    href="{{ route('home') }}"
+                    href="{{ route('orders.index') }}"
                     class="hidden items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-surface lg:flex"
                 >
                     <x-ui.icon name="orders" class="size-5" />

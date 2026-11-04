@@ -85,7 +85,13 @@ Route::middleware(['auth', 'admin'])
     ->group(function (): void {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::patch('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
+        Route::patch('/users/{user}/reactivate', [AdminUserController::class, 'reactivate'])->name('users.reactivate');
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
         Route::get('/vendors', [AdminVendorController::class, 'index'])->name('vendors.index');
+        Route::patch('/vendors/{vendor}/suspend', [AdminVendorController::class, 'suspend'])->name('vendors.suspend');
+        Route::patch('/vendors/{vendor}/reactivate', [AdminVendorController::class, 'reactivate'])->name('vendors.reactivate');
+        Route::delete('/vendors/{vendor}', [AdminVendorController::class, 'destroy'])->name('vendors.destroy');
         Route::get('/vendor-applications', [AdminVendorApplicationController::class, 'index'])->name('applications.index');
         Route::patch('/vendor-applications/{vendorApplication}/approve', [AdminVendorApplicationController::class, 'approve'])->name('applications.approve');
         Route::patch('/vendor-applications/{vendorApplication}/reject', [AdminVendorApplicationController::class, 'reject'])->name('applications.reject');

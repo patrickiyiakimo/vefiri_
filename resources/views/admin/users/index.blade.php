@@ -46,13 +46,15 @@
 
             <div class="mt-4 overflow-hidden rounded-2xl border border-black/[0.04] bg-white shadow-card">
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[720px] text-left text-xs">
+                    <table class="w-full min-w-[900px] text-left text-xs">
                         <thead class="border-b border-line bg-[#fafafa] text-2xs text-muted uppercase tracking-wide">
                             <tr>
                                 <th class="px-4 py-3 font-semibold">User</th>
                                 <th class="px-4 py-3 font-semibold">Role</th>
                                 <th class="px-4 py-3 font-semibold">Email</th>
+                                <th class="px-4 py-3 font-semibold">Status</th>
                                 <th class="px-4 py-3 font-semibold">Joined</th>
+                                <th class="px-4 py-3 font-semibold">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-line">
@@ -77,11 +79,50 @@
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-ink-soft">{{ $user->email }}</td>
+                                    <td class="px-4 py-3">
+                                        @if ($user->isSuspended())
+                                            <span class="rounded-full bg-[#fff1f0] px-2 py-0.5 text-[10px] font-bold text-[#b42318]">Suspended</span>
+                                        @else
+                                            <span class="rounded-full bg-[#e7f8f2] px-2 py-0.5 text-[10px] font-bold text-choice-dark">Active</span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-muted">{{ $user->created_at?->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            @if ($user->isAdmin() || $user->is(auth()->user()))
+                                                <span class="text-[10px] font-semibold text-muted">Protected</span>
+                                            @else
+                                                @if ($user->isSuspended())
+                                                    <form method="POST" action="{{ route('admin.users.reactivate', $user) }}">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="rounded-lg border border-[#b7ebd2] bg-[#e7f8f2] px-2 py-1 text-[10px] font-semibold text-choice-dark transition hover:bg-[#d9f4e9]">
+                                                            Reactivate
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form method="POST" action="{{ route('admin.users.suspend', $user) }}">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="rounded-lg border border-[#fed7aa] bg-[#fff7ed] px-2 py-1 text-[10px] font-semibold text-[#9a3412] transition hover:bg-[#ffedd5]">
+                                                            Suspend
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Delete this account? Their order history will be retained.')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="rounded-lg border border-[#fecaca] bg-[#fef2f2] px-2 py-1 text-[10px] font-semibold text-[#b91c1c] transition hover:bg-[#fee2e2]">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-4 py-10 text-center text-muted">No users match your filters.</td>
+                                    <td colspan="6" class="px-4 py-10 text-center text-muted">No users match your filters.</td>
                                 </tr>
                             @endforelse
                         </tbody>

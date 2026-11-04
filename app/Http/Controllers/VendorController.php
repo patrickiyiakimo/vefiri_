@@ -8,6 +8,7 @@ use App\Models\Vendor;
 use App\Services\ProductCatalog;
 use App\Services\VendorApplicationService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -24,7 +25,11 @@ class VendorController extends Controller
     {
         return view('vendors.index', [
             ...$this->sharedData(),
-            'vendors' => Vendor::query()->with('user')->latest()->paginate(12),
+            'vendors' => Vendor::query()
+                ->with('user')
+                ->whereHas('user', fn (Builder $query) => $query->notSuspended())
+                ->latest()
+                ->paginate(12),
         ]);
     }
 

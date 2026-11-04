@@ -333,6 +333,27 @@ class CheckoutTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_products_from_suspended_vendors_cannot_be_checked_out(): void
+    {
+        Http::fake();
+
+        $user = User::factory()->create();
+        $product = $this->createVendorProduct('ACCT_suspended', 5_000);
+
+        $product->vendor->user->forceFill(['suspended_at' => now()])->save();
+
+        $this->actingAs($user)
+            ->withHeader('X-Idempotency-Key', 'checkout-suspended-vendor')
+            ->postJson(route('checkout.store'), $this->checkoutPayload([
+                ['product_id' => $product->catalogKey(), 'quantity' => 1],
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('items');
+
+        $this->assertSame(0, Order::query()->count());
+        Http::assertNothingSent();
+    }
+
     public function test_vendors_without_a_paystack_subaccount_cannot_be_checked_out(): void
     {
         Http::fake();

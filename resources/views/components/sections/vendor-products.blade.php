@@ -25,10 +25,17 @@
                             Shop all products
                             <x-ui.icon name="arrow-right" class="size-3.5" />
                         </a>
-                        <a href="{{ route('vendors.apply') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">
-                            Sell on Vefiri
-                            <x-ui.icon name="store" class="size-3.5" />
-                        </a>
+                        @if (auth()->user()?->isVendor())
+                            <a href="{{ route('vendor.dashboard') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">
+                                Vendor dashboard
+                                <x-ui.icon name="store" class="size-3.5" />
+                            </a>
+                        @else
+                            <a href="{{ route('vendors.apply') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">
+                                Sell on Vefiri
+                                <x-ui.icon name="store" class="size-3.5" />
+                            </a>
+                        @endif
                     </div>
                 </div>
 
