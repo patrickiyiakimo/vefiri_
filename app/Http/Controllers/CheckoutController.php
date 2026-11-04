@@ -8,7 +8,8 @@ use App\Http\Requests\ProcessCheckoutRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\CartService;
-use App\Services\PaystackSplitPaymentService;
+use App\Services\PaystackPaymentService;
+use App\Services\ProductCatalog;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -22,6 +23,8 @@ use Illuminate\Validation\ValidationException;
 class CheckoutController extends Controller
 {
     use ProvidesStorefrontData;
+
+    public function __construct(private readonly ProductCatalog $catalog) {}
 
     public function show(Request $request, CartService $cart): View|RedirectResponse
     {
@@ -65,7 +68,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function processCheckout(ProcessCheckoutRequest $request, PaystackSplitPaymentService $payments): JsonResponse
+    public function processCheckout(ProcessCheckoutRequest $request, PaystackPaymentService $payments): JsonResponse
     {
         $data = $request->validated();
         $user = $request->user();
@@ -114,7 +117,7 @@ class CheckoutController extends Controller
                 $order->items()->createMany($lineItems);
 
                 $order->update([
-                    'checkout_url' => $payments->initializeMultiSplitCheckout($order, $lineItems, $idempotencyKey),
+                    'checkout_url' => $payments->initializeCheckout($order, $lineItems, $idempotencyKey),
                 ]);
 
                 return $order;
@@ -153,42 +156,50 @@ class CheckoutController extends Controller
     private function buildLineItems(array $items): array
     {
         return collect($items)
-            ->map(function (array $item): array {
-                $product = $this->findVendorProduct($item['product_id']);
-                $quantity = (int) $item['quantity'];
-
-                if ($product->stock < $quantity) {
-                    throw ValidationException::withMessages([
-                        'items' => "Only {$product->stock} units of {$product->name} are available.",
-                    ]);
-                }
-
-                $unitPrice = $product->price * 100;
-
-                return [
-                    'vendor_id' => $product->vendor_id,
-                    'product_id' => $product->getKey(),
-                    'product_key' => $product->catalogKey(),
-                    'product_name' => $product->name,
-                    'unit_price' => $unitPrice,
-                    'quantity' => $quantity,
-                    'line_total' => $unitPrice * $quantity,
-                ];
-            })
+            ->map(fn (array $item): array => $this->buildLineItem($item['product_id'], (int) $item['quantity']))
             ->values()
             ->all();
     }
 
-    private function findVendorProduct(string $productKey): Product
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildLineItem(string $productKey, int $quantity): array
     {
-        $slug = Str::startsWith($productKey, 'vendor-')
-            ? Str::after($productKey, 'vendor-')
-            : $productKey;
+        if (Str::startsWith($productKey, 'vendor-')) {
+            return $this->buildVendorLineItem($productKey, $quantity);
+        }
 
+        $product = $this->catalog->find($productKey);
+
+        if ($product === null) {
+            throw ValidationException::withMessages([
+                'items' => "The product [{$productKey}] is not available for checkout.",
+            ]);
+        }
+
+        $unitPrice = (int) $product['price'] * 100;
+
+        return [
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => $productKey,
+            'product_name' => $product['title'],
+            'unit_price' => $unitPrice,
+            'quantity' => $quantity,
+            'line_total' => $unitPrice * $quantity,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildVendorLineItem(string $productKey, int $quantity): array
+    {
         $product = Product::query()
             ->with('vendor')
             ->whereHas('vendor.user', fn (Builder $query) => $query->notSuspended())
-            ->where('slug', $slug)
+            ->where('slug', Str::after($productKey, 'vendor-'))
             ->where('is_active', true)
             ->first();
 
@@ -198,15 +209,23 @@ class CheckoutController extends Controller
             ]);
         }
 
-        if ($product->vendor === null || blank($product->vendor->subaccount_code)) {
-            $storeName = $product->vendor?->store_name ?? 'This vendor';
-
+        if ($product->stock < $quantity) {
             throw ValidationException::withMessages([
-                'items' => "{$storeName} is not set up to receive split payments yet.",
+                'items' => "Only {$product->stock} units of {$product->name} are available.",
             ]);
         }
 
-        return $product;
+        $unitPrice = $product->price * 100;
+
+        return [
+            'vendor_id' => $product->vendor_id,
+            'product_id' => $product->getKey(),
+            'product_key' => $product->catalogKey(),
+            'product_name' => $product->name,
+            'unit_price' => $unitPrice,
+            'quantity' => $quantity,
+            'line_total' => $unitPrice * $quantity,
+        ];
     }
 
     private function ensureOrderBelongsToUser(Order $order, int|string|null $userId): void

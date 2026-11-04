@@ -244,6 +244,7 @@
                                 <img
                                     src="{{ $item['image'] }}"
                                     alt="{{ $item['title'] }}"
+                                    onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                                     width="96"
                                     height="96"
                                     class="size-14 shrink-0 rounded-lg bg-surface object-cover"

@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'city',
     'state',
     'description',
-    'subaccount_code',
 ])]
 class Vendor extends Model
 {

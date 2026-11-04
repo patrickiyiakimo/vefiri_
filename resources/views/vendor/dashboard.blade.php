@@ -66,8 +66,9 @@
                     @forelse ($recentProducts as $product)
                         <article class="flex items-center gap-3 px-5 py-3">
                             <img
-                                src="{{ asset('storage/'.$product->image_path) }}"
+                                src="{{ $product->imageUrl() }}"
                                 alt=""
+                                onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                                 width="48"
                                 height="48"
                                 class="size-12 shrink-0 rounded-xl object-cover"

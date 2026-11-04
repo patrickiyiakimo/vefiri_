@@ -7,6 +7,7 @@
         data-cart-item-image
         src="{{ asset($item['image']) }}"
         alt=""
+        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
         width="160"
         height="160"
         class="size-20 shrink-0 rounded-xl bg-surface object-cover"
