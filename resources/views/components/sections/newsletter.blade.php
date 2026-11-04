@@ -44,7 +44,7 @@
                     <p class="text-sm font-bold">Unlock your welcome coupon</p>
                     <p class="mt-1 text-2xs leading-5 text-white/55">Enter your email and we will send the code right away.</p>
 
-                    <x-inputs.newsletter class="mt-4" />
+                    <x-inputs.newsletter class="mt-4" value="{{ old('email', auth()->user()?->email) }}" />
 
                     <p class="mt-3 text-[10px] leading-4 text-white/40">
                         By subscribing, you agree to receive marketing emails from Vefiri. Unsubscribe anytime.
