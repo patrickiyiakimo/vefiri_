@@ -53,7 +53,7 @@ class ProductController extends Controller
         $product = $vendor->products()->create([
             ...$data,
             'slug' => $this->uniqueSlug($data['name']),
-            'image_path' => $image->store('vendor-products', 'public'),
+            'image_path' => $image->storePublicly('vendor-products', $this->imageDisk()),
             'is_active' => $request->boolean('is_active'),
         ]);
 
@@ -82,9 +82,9 @@ class ProductController extends Controller
         unset($data['image']);
 
         if ($image !== null) {
-            Storage::disk('public')->delete($product->image_path);
+            Storage::disk($this->imageDisk())->delete($product->image_path);
 
-            $data['image_path'] = $image->store('vendor-products', 'public');
+            $data['image_path'] = $image->storePublicly('vendor-products', $this->imageDisk());
         }
 
         $product->update([
@@ -101,7 +101,7 @@ class ProductController extends Controller
     {
         Gate::authorize('delete', $product);
 
-        Storage::disk('public')->delete($product->image_path);
+        Storage::disk($this->imageDisk())->delete($product->image_path);
         $product->delete();
 
         return redirect()
@@ -112,6 +112,11 @@ class ProductController extends Controller
     private function vendor(Request $request): Vendor
     {
         return $request->user()->vendor()->firstOrFail();
+    }
+
+    private function imageDisk(): string
+    {
+        return (string) config('filesystems.product_images_disk', 'public');
     }
 
     private function uniqueSlug(string $name): string

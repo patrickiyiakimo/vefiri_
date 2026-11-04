@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\ProductCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
@@ -26,9 +27,6 @@ class CheckoutTest extends TestCase
             'paystack.base_url' => 'https://api.paystack.co',
             'paystack.currency' => 'NGN',
             'paystack.callback_url' => 'https://vefiri.test/checkout/callback',
-            'paystack.commission.type' => 'percentage',
-            'paystack.commission.value' => 10,
-            'paystack.split.bearer_type' => 'account',
         ]);
     }
 
@@ -43,7 +41,7 @@ class CheckoutTest extends TestCase
             'name' => 'Ada Obi',
             'email' => 'ada@example.com',
         ]);
-        $product = $this->createVendorProduct('ACCT_page', 10_000);
+        $product = $this->createVendorProduct(10_000);
         $cart = Cart::factory()->for($user)->create();
         CartItem::factory()->for($cart)->create([
             'product_key' => $product->catalogKey(),
@@ -133,7 +131,7 @@ class CheckoutTest extends TestCase
             ->assertDontSeeText('Payment is being confirmed');
     }
 
-    public function test_it_creates_an_order_with_a_multi_vendor_flat_split(): void
+    public function test_it_creates_an_order_and_initializes_a_single_account_payment(): void
     {
         Http::preventStrayRequests();
         Http::fake([
@@ -148,8 +146,8 @@ class CheckoutTest extends TestCase
             'email' => 'ada@example.com',
         ]);
 
-        $fashion = $this->createVendorProduct('ACCT_fashion', 10_000);
-        $electronics = $this->createVendorProduct('ACCT_electronics', 5_000);
+        $fashion = $this->createVendorProduct(10_000);
+        $electronics = $this->createVendorProduct(5_000);
 
         $response = $this->actingAs($user)
             ->withHeader('X-Idempotency-Key', 'checkout-abc-123')
@@ -194,9 +192,9 @@ class CheckoutTest extends TestCase
             'line_total' => 500_000,
         ]);
 
-        Http::assertSent(function (ClientRequest $request) use ($order): bool {
+        Http::assertSent(function (ClientRequest $request) use ($order, $fashion, $electronics): bool {
             $data = $request->data();
-            $shares = collect($data['split']['subaccounts'])->pluck('share', 'subaccount')->all();
+            $vendors = collect($data['metadata']['vendors'])->keyBy('vendor_id');
 
             return $request->url() === 'https://api.paystack.co/transaction/initialize'
                 && $request->method() === 'POST'
@@ -204,47 +202,13 @@ class CheckoutTest extends TestCase
                 && $data['email'] === 'ada@example.com'
                 && $data['amount'] === 2_500_000
                 && $data['reference'] === $order->payment_reference
-                && $data['split']['type'] === 'flat'
-                && $data['split']['bearer_type'] === 'account'
-                && $shares === [
-                    'ACCT_fashion' => 1_800_000,
-                    'ACCT_electronics' => 450_000,
-                ]
-                && $data['metadata']['platform_commission'] === 250_000;
-        });
-    }
-
-    public function test_flat_platform_commission_is_applied_to_the_vendor_shares(): void
-    {
-        Http::preventStrayRequests();
-        Http::fake([
-            'https://api.paystack.co/transaction/initialize' => Http::response([
-                'status' => true,
-                'data' => ['authorization_url' => 'https://checkout.paystack.com/flat'],
-            ]),
-        ]);
-
-        config([
-            'paystack.commission.type' => 'flat',
-            'paystack.commission.value' => 100_000,
-        ]);
-
-        $user = User::factory()->create();
-        $product = $this->createVendorProduct('ACCT_flat', 10_000);
-
-        $this->actingAs($user)
-            ->withHeader('X-Idempotency-Key', 'checkout-flat-commission')
-            ->postJson(route('checkout.store'), $this->checkoutPayload([
-                ['product_id' => $product->catalogKey(), 'quantity' => 1],
-            ]))
-            ->assertOk();
-
-        Http::assertSent(function (ClientRequest $request): bool {
-            $data = $request->data();
-
-            return $data['amount'] === 1_000_000
-                && $data['split']['subaccounts'][0]['share'] === 900_000
-                && $data['metadata']['platform_commission'] === 100_000;
+                && ! array_key_exists('split', $data)
+                && $data['metadata']['order_id'] === $order->getKey()
+                && $data['metadata']['idempotency_key'] === 'checkout-abc-123'
+                && $vendors[$fashion->vendor_id]['store_name'] === $fashion->vendor->store_name
+                && $vendors[$fashion->vendor_id]['line_total'] === 2_000_000
+                && $vendors[$electronics->vendor_id]['store_name'] === $electronics->vendor->store_name
+                && $vendors[$electronics->vendor_id]['line_total'] === 500_000;
         });
     }
 
@@ -259,7 +223,7 @@ class CheckoutTest extends TestCase
         ]);
 
         $user = User::factory()->create();
-        $product = $this->createVendorProduct('ACCT_once', 5_000);
+        $product = $this->createVendorProduct(5_000);
         $payload = $this->checkoutPayload([
             ['product_id' => $product->catalogKey(), 'quantity' => 1],
         ]);
@@ -295,7 +259,7 @@ class CheckoutTest extends TestCase
 
         $firstUser = User::factory()->create();
         $secondUser = User::factory()->create();
-        $product = $this->createVendorProduct('ACCT_owner', 5_000);
+        $product = $this->createVendorProduct(5_000);
 
         $this->actingAs($firstUser)
             ->withHeader('X-Idempotency-Key', 'checkout-owned')
@@ -315,22 +279,50 @@ class CheckoutTest extends TestCase
         $this->assertSame(1, Order::query()->count());
     }
 
-    public function test_static_catalog_products_cannot_be_checked_out(): void
+    public function test_static_catalog_products_can_be_checked_out(): void
     {
-        Http::fake();
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/initialize' => Http::response([
+                'status' => true,
+                'data' => ['authorization_url' => 'https://checkout.paystack.com/static'],
+            ]),
+        ]);
 
         $user = User::factory()->create();
+        $product = app(ProductCatalog::class)->find('headphones');
+        $unitPrice = $product['price'] * 100;
 
         $this->actingAs($user)
             ->withHeader('X-Idempotency-Key', 'checkout-static')
             ->postJson(route('checkout.store'), $this->checkoutPayload([
-                ['product_id' => 'headphones', 'quantity' => 1],
+                ['product_id' => 'headphones', 'quantity' => 2],
             ]))
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('items');
+            ->assertOk()
+            ->assertJsonPath('checkout_url', 'https://checkout.paystack.com/static');
 
-        $this->assertSame(0, Order::query()->count());
-        Http::assertNothingSent();
+        $order = Order::query()->where('idempotency_key', 'checkout-static')->firstOrFail();
+
+        $this->assertSame($unitPrice * 2, $order->total);
+
+        $this->assertDatabaseHas('order_items', [
+            'order_id' => $order->getKey(),
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => $product['title'],
+            'unit_price' => $unitPrice,
+            'quantity' => 2,
+            'line_total' => $unitPrice * 2,
+        ]);
+
+        Http::assertSent(function (ClientRequest $request): bool {
+            $data = $request->data();
+
+            return $data['amount'] === 1_280_000
+                && ! array_key_exists('split', $data)
+                && $data['metadata']['vendors'] === [];
+        });
     }
 
     public function test_products_from_suspended_vendors_cannot_be_checked_out(): void
@@ -338,7 +330,7 @@ class CheckoutTest extends TestCase
         Http::fake();
 
         $user = User::factory()->create();
-        $product = $this->createVendorProduct('ACCT_suspended', 5_000);
+        $product = $this->createVendorProduct(5_000);
 
         $product->vendor->user->forceFill(['suspended_at' => now()])->save();
 
@@ -354,23 +346,27 @@ class CheckoutTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_vendors_without_a_paystack_subaccount_cannot_be_checked_out(): void
+    public function test_vendors_do_not_need_a_paystack_subaccount_to_check_out(): void
     {
-        Http::fake();
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/initialize' => Http::response([
+                'status' => true,
+                'data' => ['authorization_url' => 'https://checkout.paystack.com/single-account'],
+            ]),
+        ]);
 
         $user = User::factory()->create();
-        $product = $this->createVendorProduct(null, 5_000);
+        $product = $this->createVendorProduct(5_000);
 
         $this->actingAs($user)
             ->withHeader('X-Idempotency-Key', 'checkout-no-subaccount')
             ->postJson(route('checkout.store'), $this->checkoutPayload([
                 ['product_id' => $product->catalogKey(), 'quantity' => 1],
             ]))
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('items');
+            ->assertOk();
 
-        $this->assertSame(0, Order::query()->count());
-        Http::assertNothingSent();
+        $this->assertSame(1, Order::query()->count());
     }
 
     public function test_products_with_insufficient_stock_are_rejected(): void
@@ -378,7 +374,7 @@ class CheckoutTest extends TestCase
         Http::fake();
 
         $user = User::factory()->create();
-        $product = $this->createVendorProduct('ACCT_stock', 5_000, stock: 1);
+        $product = $this->createVendorProduct(5_000, stock: 1);
 
         $this->actingAs($user)
             ->withHeader('X-Idempotency-Key', 'checkout-stock')
@@ -397,7 +393,7 @@ class CheckoutTest extends TestCase
         Http::fake();
 
         $user = User::factory()->create();
-        $product = $this->createVendorProduct('ACCT_missing_key', 5_000);
+        $product = $this->createVendorProduct(5_000);
 
         $this->actingAs($user)
             ->postJson(route('checkout.store'), $this->checkoutPayload([
@@ -414,7 +410,7 @@ class CheckoutTest extends TestCase
         Http::fake();
 
         $user = User::factory()->create();
-        $product = $this->createVendorProduct('ACCT_address', 5_000);
+        $product = $this->createVendorProduct(5_000);
 
         $this->actingAs($user)
             ->withHeader('X-Idempotency-Key', 'checkout-no-address')
@@ -451,11 +447,9 @@ class CheckoutTest extends TestCase
         ];
     }
 
-    private function createVendorProduct(?string $subaccountCode, int $price, int $stock = 10): Product
+    private function createVendorProduct(int $price, int $stock = 10): Product
     {
-        $vendor = Vendor::factory()->create([
-            'subaccount_code' => $subaccountCode,
-        ]);
+        $vendor = Vendor::factory()->create();
 
         return Product::factory()->for($vendor)->create([
             'price' => $price,

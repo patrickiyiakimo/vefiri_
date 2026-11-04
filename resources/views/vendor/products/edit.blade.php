@@ -147,8 +147,9 @@
 
                         <div class="grid gap-3 px-5 py-4">
                             <img
-                                src="{{ asset('storage/'.$product->image_path) }}"
+                                src="{{ $product->imageUrl() }}"
                                 alt=""
+                                onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                                 width="128"
                                 height="128"
                                 class="size-32 rounded-xl object-cover"

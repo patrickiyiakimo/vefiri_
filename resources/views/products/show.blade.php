@@ -20,6 +20,7 @@
                         <img
                             src="{{ asset($product['image']) }}"
                             alt="{{ $product['title'] }}"
+                            onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                             width="720"
                             height="720"
                             class="h-full w-full object-cover"

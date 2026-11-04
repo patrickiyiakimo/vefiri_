@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'vendor_id',
@@ -49,6 +50,21 @@ class Product extends Model
     public function catalogKey(): string
     {
         return 'vendor-'.$this->slug;
+    }
+
+    public function imageUrl(): string
+    {
+        $diskName = (string) config('filesystems.product_images_disk', 'public');
+        $disk = Storage::disk($diskName);
+
+        $isMissingLocalFile = config("filesystems.disks.{$diskName}.driver") === 'local'
+            && ! $disk->exists((string) $this->image_path);
+
+        if (blank($this->image_path) || $isMissingLocalFile) {
+            return asset('images/product-placeholder.svg');
+        }
+
+        return $disk->url($this->image_path);
     }
 
     public function discountPercentage(): int

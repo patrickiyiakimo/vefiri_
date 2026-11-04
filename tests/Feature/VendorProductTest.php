@@ -125,6 +125,29 @@ class VendorProductTest extends TestCase
         $this->assertNotSame('Hijacked product', $product->fresh()->name);
     }
 
+    public function test_product_images_use_the_configured_storage_disk_url(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('vendor-products/tote.jpg', 'image-bytes');
+
+        $product = Product::factory()->create([
+            'image_path' => 'vendor-products/tote.jpg',
+        ]);
+
+        $this->assertStringContainsString('vendor-products/tote.jpg', $product->imageUrl());
+    }
+
+    public function test_missing_product_images_fall_back_to_a_placeholder(): void
+    {
+        Storage::fake('public');
+
+        $product = Product::factory()->create([
+            'image_path' => 'vendor-products/missing.jpg',
+        ]);
+
+        $this->assertSame(asset('images/product-placeholder.svg'), $product->imageUrl());
+    }
+
     public function test_hidden_products_are_not_shown_on_the_storefront(): void
     {
         $product = Product::factory()->inactive()->create([

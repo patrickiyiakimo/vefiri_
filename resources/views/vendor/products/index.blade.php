@@ -48,8 +48,9 @@
                     @forelse ($products as $product)
                         <article class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
                             <img
-                                src="{{ asset('storage/'.$product->image_path) }}"
+                                src="{{ $product->imageUrl() }}"
                                 alt="{{ $product->name }}"
+                                onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                                 width="64"
                                 height="64"
                                 class="size-16 shrink-0 rounded-xl object-cover"

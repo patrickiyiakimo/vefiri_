@@ -38,7 +38,7 @@ final class ProductCatalog
                     'id' => $product->catalogKey(),
                     'title' => $product->name,
                     'description' => $product->description,
-                    'image' => 'storage/'.$product->image_path,
+                    'image' => $product->imageUrl(),
                     'price' => $product->price,
                     'old_price' => $product->compare_price,
                     'discount' => $product->discountPercentage(),

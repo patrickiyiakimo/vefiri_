@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Product Images Disk
+    |--------------------------------------------------------------------------
+    |
+    | Vendor product uploads must live on a persistent disk in production.
+    | Point this at "s3" (or another durable disk) so images survive deploys
+    | and server replacements. Local development can keep using "public".
+    |
+    */
+
+    'product_images_disk' => env('PRODUCT_IMAGES_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -56,6 +69,7 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'visibility' => 'public',
             'throw' => false,
             'report' => false,
         ],
