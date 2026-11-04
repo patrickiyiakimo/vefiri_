@@ -1,5 +1,6 @@
 @props([
     'placeholder' => 'Enter your email address',
+    'value' => '',
 ])
 
 <form
@@ -13,6 +14,7 @@
             id="newsletter-email"
             type="email"
             name="email"
+            value="{{ $value }}"
             required
             autocomplete="email"
             placeholder="{{ $placeholder }}"
