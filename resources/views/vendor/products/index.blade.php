@@ -30,6 +30,25 @@
                 <x-vendor.nav :vendor="$vendor" />
             </div>
 
+            @if ($vendor->hasReachedProductLimit())
+                <div class="mt-3 flex flex-col gap-3 rounded-2xl border border-[#f5d9a8] bg-[#fff7e6] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-start gap-3">
+                        <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-[#8a5a00]">
+                            <x-ui.icon name="lock" class="size-4" />
+                        </span>
+                        <div>
+                            <p class="text-xs font-bold text-[#8a5a00]">You have reached your product limit</p>
+                            <p class="mt-0.5 text-2xs leading-5 text-[#8a5a00]/80">You have uploaded {{ number_format($products->total()) }} of {{ number_format($vendor->productLimit()) }} products on your {{ $vendor->currentPlan()->label() }} plan. Upgrade to Premium to keep uploading.</p>
+                        </div>
+                    </div>
+
+                    <x-buttons.primary href="{{ route('vendor.premium.show') }}" size="sm">
+                        <x-ui.icon name="sparkles" class="size-3.5" />
+                        Upgrade to Premium
+                    </x-buttons.primary>
+                </div>
+            @endif
+
             @if (session('status'))
                 <div class="mt-3 rounded-xl bg-[#e7f8f2] px-4 py-3 text-xs font-semibold text-choice-dark">
                     {{ session('status') }}

@@ -80,6 +80,6 @@
         <x-ui.icon name="chevron-up" class="size-5" />
     </button>
 
-    <script src="//code.jivosite.com/widget/vlvNzUXyLG" async></script>
+<script src="//code.jivosite.com/widget/c8ze2HijnI" async></script>
 </body>
 </html>

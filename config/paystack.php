@@ -24,4 +24,6 @@ return [
 
     'callback_url' => env('PAYSTACK_CALLBACK_URL', env('APP_URL').'/checkout/callback'),
 
+    'premium_callback_url' => env('PAYSTACK_PREMIUM_CALLBACK_URL', env('APP_URL').'/vendor/premium/callback'),
+
 ];

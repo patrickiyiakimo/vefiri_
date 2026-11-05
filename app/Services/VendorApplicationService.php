@@ -51,6 +51,14 @@ class VendorApplicationService
                 ]);
             }
 
+            $applicant = $application->applicant;
+
+            if ($applicant === null || $applicant->trashed()) {
+                throw ValidationException::withMessages([
+                    'application' => 'This applicant account has been deleted, so the application cannot be approved.',
+                ]);
+            }
+
             $application->update([
                 'status' => VendorApplicationStatus::Approved,
                 'admin_note' => null,
@@ -72,7 +80,7 @@ class VendorApplicationService
                 ],
             );
 
-            $application->user()->update(['role' => UserRole::Vendor]);
+            $applicant->update(['role' => UserRole::Vendor]);
 
             return $vendor;
         });

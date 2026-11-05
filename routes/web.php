@@ -16,6 +16,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaystackWebhookController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
+use App\Http\Controllers\Vendor\PremiumController as VendorPremiumController;
 use App\Http\Controllers\Vendor\ProductController as VendorProductController;
 use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +79,10 @@ Route::middleware(['auth', 'vendor'])
         Route::get('/products/{product}/edit', [VendorProductController::class, 'edit'])->name('products.edit');
         Route::patch('/products/{product}', [VendorProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{product}', [VendorProductController::class, 'destroy'])->name('products.destroy');
+
+        Route::get('/premium', [VendorPremiumController::class, 'show'])->name('premium.show');
+        Route::post('/premium', [VendorPremiumController::class, 'store'])->name('premium.store');
+        Route::get('/premium/callback', [VendorPremiumController::class, 'callback'])->name('premium.callback');
     });
 
 Route::middleware(['auth', 'admin'])

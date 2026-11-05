@@ -46,6 +46,11 @@ class VendorApplication extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function applicant(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id')->withTrashed();
+    }
+
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');

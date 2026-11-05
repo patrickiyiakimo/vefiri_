@@ -37,6 +37,16 @@
         >
             Products
         </a>
+        <a
+            href="{{ route('vendor.premium.show') }}"
+            @class([
+                'rounded-full px-3 py-1.5 text-2xs font-semibold transition',
+                'bg-ink text-white' => request()->routeIs('vendor.premium.*'),
+                'bg-surface text-ink-soft hover:text-ink' => ! request()->routeIs('vendor.premium.*'),
+            ])
+        >
+            {{ $vendor->isPremium() ? 'Premium' : 'Upgrade' }}
+        </a>
         <a href="{{ route('vendors.status') }}" class="rounded-full bg-surface px-3 py-1.5 text-2xs font-semibold text-ink-soft transition hover:text-ink">
             Store profile
         </a>

@@ -28,6 +28,12 @@
                 </div>
             @endif
 
+            @if ($errors->any())
+                <div class="mt-4 rounded-xl bg-brand-50 px-4 py-3 text-xs font-medium text-brand-700">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
             <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 class="text-2xl font-black tracking-tight text-ink">Vendor applications</h1>
@@ -64,9 +70,12 @@
                                         <span class="rounded-full px-2 py-0.5 text-[10px] font-bold {{ $toneClasses[$application->status->value] }}">
                                             {{ $application->status->label() }}
                                         </span>
+                                        @if ($application->applicant?->trashed())
+                                            <span class="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700">Deleted account</span>
+                                        @endif
                                     </div>
                                     <p class="mt-0.5 text-2xs text-muted">
-                                        {{ $application->business_name }} - {{ $application->user?->name }} ({{ $application->user?->email }})
+                                        {{ $application->business_name }} - {{ $application->applicant?->name ?? 'Deleted account' }} ({{ $application->applicant?->email ?? 'no email' }})
                                     </p>
                                     <p class="mt-2 max-w-2xl text-xs leading-5 text-ink-soft">{{ $application->description }}</p>
 
@@ -96,13 +105,19 @@
                             <div class="shrink-0">
                                 @if ($application->isPending())
                                     <div class="flex flex-col gap-2 sm:flex-row lg:flex-col">
-                                        <form method="POST" action="{{ route('admin.applications.approve', $application) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <x-buttons.primary type="submit" size="sm" class="w-full">
-                                                Approve vendor
-                                            </x-buttons.primary>
-                                        </form>
+                                        @if ($application->applicant?->trashed())
+                                            <p class="rounded-xl bg-brand-50 px-3 py-2 text-2xs leading-5 text-brand-700 lg:w-48">
+                                                Applicant account deleted. Approval is disabled.
+                                            </p>
+                                        @else
+                                            <form method="POST" action="{{ route('admin.applications.approve', $application) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <x-buttons.primary type="submit" size="sm" class="w-full">
+                                                    Approve vendor
+                                                </x-buttons.primary>
+                                            </form>
+                                        @endif
 
                                         <form method="POST" action="{{ route('admin.applications.reject', $application) }}" class="space-y-2">
                                             @csrf
