@@ -28,7 +28,7 @@ class VendorApplicationController extends Controller
             ?? VendorApplicationStatus::Pending;
 
         $applications = VendorApplication::query()
-            ->with(['user', 'reviewer'])
+            ->with(['applicant', 'reviewer'])
             ->where('status', $status)
             ->latest()
             ->paginate(20)
@@ -48,9 +48,9 @@ class VendorApplicationController extends Controller
 
         $vendor = $this->applications->approve($vendorApplication, $request->user());
 
-        $vendorApplication->refresh()->load('user');
+        $vendorApplication->refresh()->load('applicant');
 
-        Mail::to($vendorApplication->user)->queue(new VendorApplicationApprovedMail($vendorApplication, $vendor));
+        Mail::to($vendorApplication->applicant)->queue(new VendorApplicationApprovedMail($vendorApplication, $vendor));
 
         return back()->with('status', "{$vendorApplication->store_name} is now a verified vendor.");
     }
@@ -63,9 +63,11 @@ class VendorApplicationController extends Controller
             $request->validated('admin_note'),
         );
 
-        $vendorApplication->refresh()->load('user');
+        $vendorApplication->refresh()->load('applicant');
 
-        Mail::to($vendorApplication->user)->queue(new VendorApplicationRejectedMail($vendorApplication));
+        if ($vendorApplication->applicant !== null && ! $vendorApplication->applicant->trashed()) {
+            Mail::to($vendorApplication->applicant)->queue(new VendorApplicationRejectedMail($vendorApplication));
+        }
 
         return back()->with('status', "{$vendorApplication->store_name}'s application was rejected.");
     }

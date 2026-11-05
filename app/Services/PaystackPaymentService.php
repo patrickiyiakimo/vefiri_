@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\PaystackException;
 use App\Models\Order;
 use App\Models\Vendor;
+use App\Models\VendorPremiumPayment;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -77,10 +78,63 @@ class PaystackPaymentService
         return $authorizationUrl;
     }
 
+    public function initializePremiumPayment(Vendor $vendor, VendorPremiumPayment $payment): string
+    {
+        $email = (string) ($vendor->business_email ?: $vendor->user()->value('email'));
+
+        if ($email === '') {
+            throw new PaystackException('The vendor does not have an email address for payment.');
+        }
+
+        $reference = (string) $payment->reference;
+
+        if ($reference === '') {
+            throw new PaystackException('The premium payment is missing its Paystack reference.');
+        }
+
+        $payload = [
+            'email' => $email,
+            'amount' => $payment->amount,
+            'currency' => $payment->currency,
+            'reference' => $reference,
+            'metadata' => [
+                'type' => 'vendor_premium',
+                'vendor_id' => $vendor->getKey(),
+                'payment_id' => $payment->getKey(),
+                'idempotency_key' => $payment->idempotency_key,
+            ],
+        ];
+
+        $callbackUrl = config('paystack.premium_callback_url');
+
+        if (is_string($callbackUrl) && $callbackUrl !== '') {
+            $payload['callback_url'] = $callbackUrl;
+        }
+
+        $response = $this->send('post', '/transaction/initialize', $payload);
+
+        $this->ensureSuccessful($response, 'Paystack could not initialize the premium upgrade payment.');
+
+        $authorizationUrl = $response->json('data.authorization_url');
+
+        if (! is_string($authorizationUrl) || $authorizationUrl === '') {
+            throw new PaystackException('Paystack returned an invalid premium checkout URL.');
+        }
+
+        return $authorizationUrl;
+    }
+
     public function verifyCheckout(Order $order): bool
     {
-        $reference = (string) $order->payment_reference;
+        return $this->verifyTransaction(
+            (string) $order->payment_reference,
+            (int) $order->total,
+            (string) config('paystack.currency', 'NGN'),
+        );
+    }
 
+    public function verifyTransaction(string $reference, int $amount, string $currency): bool
+    {
         if ($reference === '') {
             return false;
         }
@@ -99,8 +153,8 @@ class PaystackPaymentService
 
         return ($data['status'] ?? null) === 'success'
             && ($data['reference'] ?? null) === $reference
-            && (int) ($data['amount'] ?? 0) === (int) $order->total
-            && strtoupper((string) ($data['currency'] ?? '')) === strtoupper((string) config('paystack.currency', 'NGN'));
+            && (int) ($data['amount'] ?? 0) === $amount
+            && strtoupper((string) ($data['currency'] ?? '')) === strtoupper($currency);
     }
 
     /**

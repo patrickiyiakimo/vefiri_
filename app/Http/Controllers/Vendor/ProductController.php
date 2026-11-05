@@ -9,12 +9,15 @@ use App\Http\Requests\UpdateVendorProductRequest;
 use App\Models\Product;
 use App\Models\Vendor;
 use App\Services\ProductCatalog;
+use App\Services\VendorProductService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class ProductController extends Controller
 {
@@ -33,29 +36,52 @@ class ProductController extends Controller
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
+        $vendor = $this->vendor($request);
+
+        if ($vendor->hasReachedProductLimit()) {
+            return $this->redirectToPremium();
+        }
+
         return view('vendor.products.create', [
             ...$this->sharedData(),
-            'vendor' => $this->vendor($request),
+            'vendor' => $vendor,
             'categories' => $this->catalog->categories(),
         ]);
     }
 
-    public function store(StoreVendorProductRequest $request): RedirectResponse
+    public function store(StoreVendorProductRequest $request, VendorProductService $products): RedirectResponse
     {
         $vendor = $this->vendor($request);
+
+        if ($vendor->hasReachedProductLimit()) {
+            return $this->redirectToPremium();
+        }
+
         $data = $request->validated();
         $image = $request->file('image');
 
         unset($data['image']);
 
-        $product = $vendor->products()->create([
-            ...$data,
-            'slug' => $this->uniqueSlug($data['name']),
-            'image_path' => $image->storePublicly('vendor-products', $this->imageDisk()),
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $imagePath = $image->storePublicly('vendor-products', $this->imageDisk());
+
+        try {
+            $product = $products->create($vendor, [
+                ...$data,
+                'slug' => $this->uniqueSlug($data['name']),
+                'image_path' => $imagePath,
+                'is_active' => $request->boolean('is_active'),
+            ]);
+        } catch (Throwable $exception) {
+            Storage::disk($this->imageDisk())->delete($imagePath);
+
+            if ($exception instanceof ValidationException && array_key_exists('limit', $exception->errors())) {
+                return $this->redirectToPremium();
+            }
+
+            throw $exception;
+        }
 
         return redirect()
             ->route('vendor.products.index')
@@ -107,6 +133,16 @@ class ProductController extends Controller
         return redirect()
             ->route('vendor.products.index')
             ->with('status', 'Product removed from your storefront.');
+    }
+
+    private function redirectToPremium(): RedirectResponse
+    {
+        return redirect()
+            ->route('vendor.premium.show')
+            ->with([
+                'status' => 'You have reached your product limit. Upgrade to Premium to keep uploading products.',
+                'limit_reached' => true,
+            ]);
     }
 
     private function vendor(Request $request): Vendor

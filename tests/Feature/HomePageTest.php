@@ -31,7 +31,7 @@ class HomePageTest extends TestCase
         $response->assertSee('favicon.ico', false);
         $response->assertSee('data-load-more', false);
         $response->assertDontSee('.avif', false);
-        $response->assertSee('code.jivosite.com/widget/vlvNzUXyLG', false);
+        $response->assertSee('code.jivosite.com/widget/c8ze2HijnI', false);
     }
 
     public function test_the_welcome_coupon_email_field_is_prefilled_for_signed_in_users(): void

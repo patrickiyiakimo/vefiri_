@@ -6,6 +6,7 @@ import { initCheckout } from './modules/checkout';
 import { initCountdowns } from './modules/countdown';
 import { initDrawers } from './modules/drawer';
 import { initDropdowns } from './modules/dropdown';
+import { initLimitModal } from './modules/limit-modal';
 import { initLoadMore } from './modules/load-more';
 import { initNewsletters } from './modules/newsletter';
 import { initSearch } from './modules/search';
@@ -18,6 +19,7 @@ const initStorefront = () => {
     initDropdowns();
     initDrawers();
     initAuthModal();
+    initLimitModal();
     initCarousels();
     initTabs();
     initLoadMore();
