@@ -16,6 +16,18 @@
                 <span class="truncate font-mono text-ink-soft">{{ $order->payment_reference }}</span>
             </nav>
 
+            @if (session('status'))
+                <div class="mt-4 rounded-xl bg-[#e7f8f2] px-4 py-3 text-xs font-medium text-choice-dark">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="mt-4 rounded-xl bg-[#fff1f0] px-4 py-3 text-xs font-medium text-[#b42318]">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -27,10 +39,23 @@
                     </p>
                 </div>
 
-                <x-buttons.secondary href="{{ route('admin.orders.index') }}" size="sm">
-                    <x-ui.icon name="arrow-left" class="size-3.5" />
-                    Back to orders
-                </x-buttons.secondary>
+                <div class="flex flex-wrap items-center gap-2">
+                    @if ($order->status === \App\Enums\OrderStatus::Paid)
+                        <form method="POST" action="{{ route('admin.orders.delivered', $order) }}" onsubmit="return confirm('Mark this order as delivered and email the customer?')">
+                            @csrf
+                            @method('PATCH')
+                            <x-buttons.primary type="submit" size="sm">
+                                <x-ui.icon name="check" class="size-3.5" />
+                                Mark as delivered
+                            </x-buttons.primary>
+                        </form>
+                    @endif
+
+                    <x-buttons.secondary href="{{ route('admin.orders.index') }}" size="sm">
+                        <x-ui.icon name="arrow-left" class="size-3.5" />
+                        Back to orders
+                    </x-buttons.secondary>
+                </div>
             </div>
 
             <div class="mt-4 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -96,6 +121,12 @@
                                 <div class="flex items-center justify-between gap-3">
                                     <span class="text-muted">Paid on</span>
                                     <span class="font-semibold text-ink">{{ $order->paid_at->format('M j, Y g:i A') }}</span>
+                                </div>
+                            @endif
+                            @if ($order->delivered_at)
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-muted">Delivered on</span>
+                                    <span class="font-semibold text-ink">{{ $order->delivered_at->format('M j, Y g:i A') }}</span>
                                 </div>
                             @endif
                         </div>

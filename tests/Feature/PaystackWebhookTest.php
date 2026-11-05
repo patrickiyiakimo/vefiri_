@@ -111,6 +111,25 @@ class PaystackWebhookTest extends TestCase
         ]);
     }
 
+    public function test_replaying_a_success_webhook_does_not_downgrade_a_delivered_order(): void
+    {
+        $deliveredAt = now()->subDay();
+
+        $order = Order::factory()->delivered()->create([
+            'payment_reference' => 'VEF_WEBHOOK_DELIVERED',
+            'delivered_at' => $deliveredAt,
+        ]);
+
+        $originalDeliveredAt = $order->delivered_at;
+
+        $this->sendWebhook($this->payload('VEF_WEBHOOK_DELIVERED'))->assertOk();
+
+        $order->refresh();
+
+        $this->assertSame(OrderStatus::Delivered, $order->status);
+        $this->assertTrue($originalDeliveredAt->equalTo($order->delivered_at));
+    }
+
     public function test_a_webhook_with_an_invalid_signature_is_rejected(): void
     {
         $order = Order::factory()->create([

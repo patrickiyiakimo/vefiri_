@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'checkout_url',
     'metadata',
     'paid_at',
+    'delivered_at',
 ])]
 class Order extends Model
 {
@@ -41,6 +42,7 @@ class Order extends Model
             'status' => OrderStatus::class,
             'metadata' => 'array',
             'paid_at' => 'datetime',
+            'delivered_at' => 'datetime',
         ];
     }
 
@@ -56,6 +58,11 @@ class Order extends Model
 
     public function isPaid(): bool
     {
-        return $this->status === OrderStatus::Paid;
+        return in_array($this->status, [OrderStatus::Paid, OrderStatus::Delivered], true);
+    }
+
+    public function isDelivered(): bool
+    {
+        return $this->status === OrderStatus::Delivered;
     }
 }

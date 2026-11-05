@@ -22,7 +22,7 @@ class OrderPaymentService
                 return;
             }
 
-            if ($lockedOrder->status !== OrderStatus::Paid) {
+            if (! in_array($lockedOrder->status, [OrderStatus::Paid, OrderStatus::Delivered], true)) {
                 $lockedOrder->update([
                     'status' => OrderStatus::Paid,
                     'paid_at' => now(),

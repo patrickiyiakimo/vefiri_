@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\LoginNotificationMail;
+use App\Mail\WelcomeMail;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -74,6 +77,15 @@ class AuthController extends Controller
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
 
+        $user = $request->user();
+
+        Mail::to($user)->queue(new LoginNotificationMail(
+            $user,
+            now()->format('M j, Y \a\t g:i A T'),
+            $request->ip(),
+            Str::limit((string) $request->userAgent(), 120, '...'),
+        ));
+
         return $this->authenticated($request, 'Signed in successfully.');
     }
 
@@ -89,6 +101,8 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        Mail::to($user)->queue(new WelcomeMail($user));
 
         return $this->authenticated($request, 'Your Vefiri account is ready.');
     }

@@ -110,6 +110,12 @@
                                     <span class="font-semibold text-ink">{{ $order->paid_at->format('M j, Y') }}</span>
                                 </div>
                             @endif
+                            @if ($order->delivered_at)
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-muted">Delivered on</span>
+                                    <span class="font-semibold text-ink">{{ $order->delivered_at->format('M j, Y') }}</span>
+                                </div>
+                            @endif
                         </div>
                     </section>
 

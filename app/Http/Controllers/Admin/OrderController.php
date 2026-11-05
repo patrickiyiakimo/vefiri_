@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\ProvidesStorefrontData;
 use App\Http\Controllers\Controller;
+use App\Mail\DeliveryConfirmationMail;
 use App\Models\Order;
+use App\Services\OrderDeliveryService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -33,5 +37,16 @@ class OrderController extends Controller
             ...$this->sharedData(),
             'order' => $order,
         ]);
+    }
+
+    public function markDelivered(Order $order, OrderDeliveryService $deliveries): RedirectResponse
+    {
+        if (! $deliveries->markDelivered($order)) {
+            return back()->with('error', 'Only paid orders can be marked as delivered.');
+        }
+
+        Mail::to($order->customer_email)->queue(new DeliveryConfirmationMail($order));
+
+        return back()->with('status', "Order {$order->payment_reference} has been marked as delivered and the customer has been notified.");
     }
 }
