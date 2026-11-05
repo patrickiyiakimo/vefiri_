@@ -77,6 +77,32 @@ class PaystackPaymentService
         return $authorizationUrl;
     }
 
+    public function verifyCheckout(Order $order): bool
+    {
+        $reference = (string) $order->payment_reference;
+
+        if ($reference === '') {
+            return false;
+        }
+
+        $response = $this->send('get', '/transaction/verify/'.rawurlencode($reference), []);
+
+        if (! $response->successful() || $response->json('status') !== true) {
+            return false;
+        }
+
+        $data = $response->json('data');
+
+        if (! is_array($data)) {
+            return false;
+        }
+
+        return ($data['status'] ?? null) === 'success'
+            && ($data['reference'] ?? null) === $reference
+            && (int) ($data['amount'] ?? 0) === (int) $order->total
+            && strtoupper((string) ($data['currency'] ?? '')) === strtoupper((string) config('paystack.currency', 'NGN'));
+    }
+
     /**
      * @param  Collection<int|string, int>  $vendorTotals
      * @return array<int, array{vendor_id: int|string, store_name: string, line_total: int}>

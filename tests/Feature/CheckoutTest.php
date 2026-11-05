@@ -104,15 +104,127 @@ class CheckoutTest extends TestCase
 
     public function test_the_callback_page_shows_a_pending_payment(): void
     {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/verify/VEF_CALLBACK_PENDING' => Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'pending',
+                    'reference' => 'VEF_CALLBACK_PENDING',
+                    'amount' => 12_800,
+                    'currency' => 'NGN',
+                ],
+            ]),
+        ]);
+
         $user = User::factory()->create();
         Order::factory()->for($user)->create([
             'payment_reference' => 'VEF_CALLBACK_PENDING',
+            'total' => 12_800,
         ]);
 
         $this->actingAs($user)
             ->get(route('checkout.callback', ['reference' => 'VEF_CALLBACK_PENDING']))
             ->assertOk()
             ->assertSeeText('Payment is being confirmed');
+    }
+
+    public function test_the_callback_page_confirms_a_successful_payment_and_removes_purchased_cart_items(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/verify/VEF_CALLBACK_CONFIRMED' => Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'success',
+                    'reference' => 'VEF_CALLBACK_CONFIRMED',
+                    'amount' => 12_800,
+                    'currency' => 'NGN',
+                ],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+        $order = Order::factory()->for($user)->create([
+            'payment_reference' => 'VEF_CALLBACK_CONFIRMED',
+            'total' => 12_800,
+        ]);
+        $order->items()->create([
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => 'Headphones',
+            'unit_price' => 6_400,
+            'quantity' => 2,
+            'line_total' => 12_800,
+        ]);
+
+        $cart = Cart::factory()->for($user)->create();
+        CartItem::factory()->for($cart)->create(['product_key' => 'headphones']);
+        CartItem::factory()->for($cart)->create(['product_key' => 'chair']);
+
+        $this->actingAs($user)
+            ->get(route('checkout.callback', ['reference' => 'VEF_CALLBACK_CONFIRMED']))
+            ->assertOk()
+            ->assertSeeText('Payment confirmed');
+
+        $order->refresh();
+
+        $this->assertSame('paid', $order->status->value);
+        $this->assertNotNull($order->paid_at);
+        $this->assertDatabaseMissing('cart_items', [
+            'cart_id' => $cart->getKey(),
+            'product_key' => 'headphones',
+        ]);
+        $this->assertDatabaseHas('cart_items', [
+            'cart_id' => $cart->getKey(),
+            'product_key' => 'chair',
+        ]);
+    }
+
+    public function test_the_callback_page_does_not_confirm_a_payment_with_a_mismatched_amount(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/verify/VEF_CALLBACK_MISMATCH' => Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'success',
+                    'reference' => 'VEF_CALLBACK_MISMATCH',
+                    'amount' => 100,
+                    'currency' => 'NGN',
+                ],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+        $order = Order::factory()->for($user)->create([
+            'payment_reference' => 'VEF_CALLBACK_MISMATCH',
+            'total' => 12_800,
+        ]);
+        $order->items()->create([
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => 'Headphones',
+            'unit_price' => 6_400,
+            'quantity' => 2,
+            'line_total' => 12_800,
+        ]);
+
+        $cart = Cart::factory()->for($user)->create();
+        CartItem::factory()->for($cart)->create(['product_key' => 'headphones']);
+
+        $this->actingAs($user)
+            ->get(route('checkout.callback', ['reference' => 'VEF_CALLBACK_MISMATCH']))
+            ->assertOk()
+            ->assertSeeText('Payment is being confirmed');
+
+        $this->assertSame('pending', $order->fresh()->status->value);
+        $this->assertDatabaseHas('cart_items', [
+            'cart_id' => $cart->getKey(),
+            'product_key' => 'headphones',
+        ]);
     }
 
     public function test_the_callback_page_does_not_expose_another_users_order(): void

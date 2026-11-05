@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Exceptions\PaystackException;
 use App\Http\Controllers\Concerns\ProvidesStorefrontData;
 use App\Http\Requests\ProcessCheckoutRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\CartService;
+use App\Services\OrderPaymentService;
 use App\Services\PaystackPaymentService;
 use App\Services\ProductCatalog;
 use Illuminate\Contracts\View\View;
@@ -43,8 +45,11 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function callback(Request $request): View
-    {
+    public function callback(
+        Request $request,
+        PaystackPaymentService $payments,
+        OrderPaymentService $orders,
+    ): View {
         $reference = $request->string('reference')->toString();
 
         if ($reference === '') {
@@ -59,6 +64,22 @@ class CheckoutController extends Controller
                 ->where('user_id', $request->user()->getKey())
                 ->withCount('items')
                 ->first();
+        }
+
+        if ($order !== null) {
+            if ($order->status === OrderStatus::Pending) {
+                try {
+                    if ($payments->verifyCheckout($order)) {
+                        $orders->confirm($order);
+                    }
+                } catch (PaystackException $exception) {
+                    report($exception);
+                }
+            } elseif ($order->status === OrderStatus::Paid) {
+                $orders->confirm($order);
+            }
+
+            $order->refresh()->loadCount('items');
         }
 
         return view('checkout.callback', [

@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\OrderStatus;
 use App\Models\Order;
+use App\Services\OrderPaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PaystackWebhookController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, OrderPaymentService $payments): JsonResponse
     {
         if ($request->string('event')->toString() !== 'charge.success') {
             return response()->json(['status' => 'ignored']);
@@ -22,29 +21,15 @@ class PaystackWebhookController extends Controller
             return response()->json(['status' => 'ignored', 'message' => 'Missing payment reference.']);
         }
 
-        $order = DB::transaction(function () use ($reference): ?Order {
-            $order = Order::query()
-                ->where('payment_reference', $reference)
-                ->lockForUpdate()
-                ->first();
-
-            if ($order === null) {
-                return null;
-            }
-
-            if ($order->status !== OrderStatus::Paid) {
-                $order->update([
-                    'status' => OrderStatus::Paid,
-                    'paid_at' => now(),
-                ]);
-            }
-
-            return $order;
-        });
+        $order = Order::query()
+            ->where('payment_reference', $reference)
+            ->first();
 
         if ($order === null) {
             return response()->json(['status' => 'ignored', 'message' => 'Order not found.']);
         }
+
+        $payments->confirm($order);
 
         return response()->json(['status' => 'success']);
     }

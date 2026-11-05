@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -87,6 +88,17 @@ class CartService
     public function clear(User $user): void
     {
         $this->cart($user)?->items()->delete();
+    }
+
+    public function removePurchasedItems(Order $order): void
+    {
+        $productKeys = $order->items()->pluck('product_key')->all();
+
+        if ($productKeys === [] || $order->user === null) {
+            return;
+        }
+
+        $this->cart($order->user)?->items()->whereIn('product_key', $productKeys)->delete();
     }
 
     public function count(User $user): int

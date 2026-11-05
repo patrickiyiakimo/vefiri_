@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\OrderStatus;
+use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
@@ -39,6 +41,41 @@ class PaystackWebhookTest extends TestCase
         $this->assertNotNull($order->paid_at);
     }
 
+    public function test_a_successful_webhook_removes_only_the_purchased_items_from_the_cart(): void
+    {
+        $order = Order::factory()->create([
+            'payment_reference' => 'VEF_WEBHOOK_CART',
+            'status' => OrderStatus::Pending,
+            'paid_at' => null,
+            'total' => 12_800,
+        ]);
+
+        $order->items()->create([
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => 'Headphones',
+            'unit_price' => 6_400,
+            'quantity' => 2,
+            'line_total' => 12_800,
+        ]);
+
+        $cart = Cart::factory()->for($order->user)->create();
+        CartItem::factory()->for($cart)->create(['product_key' => 'headphones']);
+        CartItem::factory()->for($cart)->create(['product_key' => 'chair']);
+
+        $this->sendWebhook($this->payload('VEF_WEBHOOK_CART'))->assertOk();
+
+        $this->assertDatabaseMissing('cart_items', [
+            'cart_id' => $cart->getKey(),
+            'product_key' => 'headphones',
+        ]);
+        $this->assertDatabaseHas('cart_items', [
+            'cart_id' => $cart->getKey(),
+            'product_key' => 'chair',
+        ]);
+    }
+
     public function test_replaying_a_success_webhook_does_not_change_the_paid_timestamp(): void
     {
         $order = Order::factory()->create([
@@ -46,9 +83,21 @@ class PaystackWebhookTest extends TestCase
             'status' => OrderStatus::Pending,
             'paid_at' => null,
         ]);
+        $order->items()->create([
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => 'Headphones',
+            'unit_price' => 6_400,
+            'quantity' => 2,
+            'line_total' => 12_800,
+        ]);
 
         $this->sendWebhook($this->payload('VEF_WEBHOOK_REPLAY'))->assertOk();
         $paidAt = $order->fresh()->paid_at;
+
+        $cart = Cart::factory()->for($order->user)->create();
+        CartItem::factory()->for($cart)->create(['product_key' => 'headphones']);
 
         $this->travel(5)->minutes();
 
@@ -56,6 +105,10 @@ class PaystackWebhookTest extends TestCase
 
         $this->assertTrue($paidAt->equalTo($order->fresh()->paid_at));
         $this->assertSame(OrderStatus::Paid, $order->fresh()->status);
+        $this->assertDatabaseHas('cart_items', [
+            'cart_id' => $cart->getKey(),
+            'product_key' => 'headphones',
+        ]);
     }
 
     public function test_a_webhook_with_an_invalid_signature_is_rejected(): void

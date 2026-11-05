@@ -71,6 +71,28 @@ export function initWishlist() {
         }
     };
 
+    const removeFromPage = (button) => {
+        const item = button.closest('[data-wishlist-item]');
+
+        if (!item) {
+            return;
+        }
+
+        item.remove();
+
+        const grid = document.querySelector('[data-wishlist-grid]');
+        const empty = document.querySelector('[data-wishlist-empty]');
+        const summary = document.querySelector('[data-wishlist-summary]');
+        const remaining = grid?.querySelectorAll('[data-wishlist-item]').length ?? 0;
+
+        grid?.classList.toggle('hidden', remaining === 0);
+        empty?.classList.toggle('hidden', remaining > 0);
+
+        if (summary) {
+            summary.textContent = `${remaining} ${remaining === 1 ? 'item' : 'items'} saved to your account.`;
+        }
+    };
+
     document.addEventListener('click', async (event) => {
         const button = event.target.closest('[data-wishlist]');
 
@@ -103,6 +125,11 @@ export function initWishlist() {
             (data.ids ?? []).forEach((id) => wishlist.add(id));
 
             applyState(button, data.active === true);
+
+            if (data.active !== true) {
+                removeFromPage(button);
+            }
+
             showToast(data.active ? 'Saved to your wishlist.' : 'Removed from your wishlist.');
         } catch (error) {
             if (error.status === 401) {
