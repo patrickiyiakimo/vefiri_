@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('title', 'Admin dashboard | Vefiri')
-@section('description', 'Manage users, vendors and vendor applications from the Vefiri admin dashboard.')
+@section('description', 'Manage orders, users, vendors and vendor applications from the Vefiri admin dashboard.')
 
 @section('content')
     <section class="pt-4 pb-2">
@@ -19,6 +19,7 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('admin.orders.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Orders</a>
                     <a href="{{ route('admin.users.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Users</a>
                     <a href="{{ route('admin.vendors.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Vendors</a>
                     <a href="{{ route('admin.applications.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Vendor applications</a>

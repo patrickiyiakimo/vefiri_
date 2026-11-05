@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\VendorApplicationController as AdminVendorApplicationController;
 use App\Http\Controllers\Admin\VendorController as AdminVendorController;
@@ -84,6 +85,8 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function (): void {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
         Route::patch('/users/{user}/reactivate', [AdminUserController::class, 'reactivate'])->name('users.reactivate');
