@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ProvidesStorefrontData;
 use App\Http\Requests\StoreVendorApplicationRequest;
+use App\Mail\VendorApplicationReceivedMail;
 use App\Models\Vendor;
 use App\Services\ProductCatalog;
 use App\Services\VendorApplicationService;
@@ -11,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class VendorController extends Controller
 {
@@ -56,7 +58,9 @@ class VendorController extends Controller
 
     public function store(StoreVendorApplicationRequest $request): RedirectResponse
     {
-        $this->applications->apply($request->user(), $request->validated());
+        $application = $this->applications->apply($request->user(), $request->validated());
+
+        Mail::to($request->user())->queue(new VendorApplicationReceivedMail($application));
 
         return redirect()
             ->route('vendors.status')

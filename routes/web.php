@@ -87,6 +87,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/', AdminDashboardController::class)->name('dashboard');
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}/delivered', [AdminOrderController::class, 'markDelivered'])->name('orders.delivered');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
         Route::patch('/users/{user}/reactivate', [AdminUserController::class, 'reactivate'])->name('users.reactivate');

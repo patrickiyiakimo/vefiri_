@@ -36,6 +36,7 @@ class OrderFactory extends Factory
             'checkout_url' => null,
             'metadata' => null,
             'paid_at' => null,
+            'delivered_at' => null,
         ];
     }
 
@@ -44,6 +45,15 @@ class OrderFactory extends Factory
         return $this->state(fn (array $attributes): array => [
             'status' => OrderStatus::Paid,
             'paid_at' => now(),
+        ]);
+    }
+
+    public function delivered(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'status' => OrderStatus::Delivered,
+            'paid_at' => now(),
+            'delivered_at' => now(),
         ]);
     }
 

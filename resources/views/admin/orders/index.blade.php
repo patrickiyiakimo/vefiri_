@@ -14,6 +14,18 @@
                 <span class="text-ink-soft">Orders</span>
             </nav>
 
+            @if (session('status'))
+                <div class="mt-4 rounded-xl bg-[#e7f8f2] px-4 py-3 text-xs font-medium text-choice-dark">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="mt-4 rounded-xl bg-[#fff1f0] px-4 py-3 text-xs font-medium text-[#b42318]">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 class="text-2xl font-black tracking-tight text-ink">All orders</h1>
@@ -49,7 +61,13 @@
                                     <td class="px-4 py-3">
                                         <p class="font-mono text-[11px] font-bold text-ink">{{ $order->payment_reference }}</p>
                                         <p class="mt-0.5 text-[10px] text-muted">
-                                            {{ $order->paid_at ? 'Paid '.$order->paid_at->format('M j, Y') : 'Not paid yet' }}
+                                            @if ($order->delivered_at)
+                                                Delivered {{ $order->delivered_at->format('M j, Y') }}
+                                            @elseif ($order->paid_at)
+                                                Paid {{ $order->paid_at->format('M j, Y') }}
+                                            @else
+                                                Not paid yet
+                                            @endif
                                         </p>
                                     </td>
                                     <td class="px-4 py-3">
