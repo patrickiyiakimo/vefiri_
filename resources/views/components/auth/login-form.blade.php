@@ -34,15 +34,12 @@
 
     <div>
         <label for="{{ $prefix }}-password" class="mb-1.5 block text-xs font-semibold text-ink">Password</label>
-        <input
-            id="{{ $prefix }}-password"
-            type="password"
+        <x-ui.password-field
+            :id="$prefix.'-password'"
             name="password"
             autocomplete="current-password"
-            required
-            aria-invalid="{{ $passwordError ? 'true' : 'false' }}"
-            class="h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
-        >
+            :invalid="$passwordError"
+        />
         <p data-auth-error="password" @class(['mt-1.5 text-xs text-brand-700', 'hidden' => ! $passwordError])>{{ $passwordError }}</p>
     </div>
 

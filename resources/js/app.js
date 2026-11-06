@@ -9,6 +9,7 @@ import { initDropdowns } from './modules/dropdown';
 import { initLimitModal } from './modules/limit-modal';
 import { initLoadMore } from './modules/load-more';
 import { initNewsletters } from './modules/newsletter';
+import { initPasswordToggles } from './modules/password-toggle';
 import { initSearch } from './modules/search';
 import { initTabs } from './modules/tabs';
 import { initToasts } from './modules/toast';
@@ -20,6 +21,7 @@ const initStorefront = () => {
     initDrawers();
     initAuthModal();
     initLimitModal();
+    initPasswordToggles();
     initCarousels();
     initTabs();
     initLoadMore();
