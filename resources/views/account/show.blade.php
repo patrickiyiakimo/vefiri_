@@ -134,7 +134,7 @@
 
                             <div>
                                 <label for="current_password" class="mb-1.5 block text-xs font-semibold text-ink">Current password</label>
-                                <input id="current_password" name="current_password" type="password" required autocomplete="current-password" class="{{ $inputClasses }}">
+                                <x-ui.password-field id="current_password" name="current_password" autocomplete="current-password" />
                                 @error('current_password')
                                     <p class="mt-1.5 text-xs text-brand-700">{{ $message }}</p>
                                 @enderror
@@ -142,7 +142,7 @@
 
                             <div>
                                 <label for="password" class="mb-1.5 block text-xs font-semibold text-ink">New password</label>
-                                <input id="password" name="password" type="password" required autocomplete="new-password" class="{{ $inputClasses }}">
+                                <x-ui.password-field id="password" name="password" autocomplete="new-password" />
                                 <p class="mt-1.5 text-[10px] text-muted">Use at least 8 characters.</p>
                                 @error('password')
                                     <p class="mt-1.5 text-xs text-brand-700">{{ $message }}</p>
@@ -151,7 +151,7 @@
 
                             <div>
                                 <label for="password_confirmation" class="mb-1.5 block text-xs font-semibold text-ink">Confirm new password</label>
-                                <input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" class="{{ $inputClasses }}">
+                                <x-ui.password-field id="password_confirmation" name="password_confirmation" autocomplete="new-password" />
                             </div>
 
                             <x-buttons.primary type="submit" size="sm">Update password</x-buttons.primary>

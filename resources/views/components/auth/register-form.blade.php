@@ -51,27 +51,21 @@
     <div class="grid gap-4 sm:grid-cols-2">
         <div>
             <label for="{{ $prefix }}-password" class="mb-1.5 block text-xs font-semibold text-ink">Password</label>
-            <input
-                id="{{ $prefix }}-password"
-                type="password"
+            <x-ui.password-field
+                :id="$prefix.'-password'"
                 name="password"
                 autocomplete="new-password"
-                required
-                aria-invalid="{{ $passwordError ? 'true' : 'false' }}"
-                class="h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
-            >
+                :invalid="$passwordError"
+            />
         </div>
 
         <div>
             <label for="{{ $prefix }}-password-confirmation" class="mb-1.5 block text-xs font-semibold text-ink">Confirm password</label>
-            <input
-                id="{{ $prefix }}-password-confirmation"
-                type="password"
+            <x-ui.password-field
+                :id="$prefix.'-password-confirmation'"
                 name="password_confirmation"
                 autocomplete="new-password"
-                required
-                class="h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
-            >
+            />
         </div>
     </div>
 
