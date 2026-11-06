@@ -18,6 +18,8 @@ class OrderFactory extends Factory
      */
     public function definition(): array
     {
+        $total = fake()->numberBetween(100_00, 5_000_00);
+
         return [
             'user_id' => User::factory(),
             'customer_name' => fake()->name(),
@@ -29,7 +31,16 @@ class OrderFactory extends Factory
             'delivery_state' => fake()->state(),
             'delivery_postal_code' => fake()->postcode(),
             'delivery_notes' => null,
-            'total' => fake()->numberBetween(100_00, 5_000_00),
+            'subtotal' => $total,
+            'discount_total' => 0,
+            'taxable_amount' => 0,
+            'tax_total' => 0,
+            'shipping_total' => 0,
+            'tax_rate' => 0,
+            'tax_after_discount' => true,
+            'coupon_id' => null,
+            'coupon_code' => null,
+            'total' => $total,
             'payment_reference' => 'VEF_'.Str::upper(Str::random(20)),
             'status' => OrderStatus::Pending,
             'idempotency_key' => (string) Str::uuid(),

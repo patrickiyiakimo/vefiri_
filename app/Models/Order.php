@@ -21,6 +21,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'delivery_state',
     'delivery_postal_code',
     'delivery_notes',
+    'subtotal',
+    'discount_total',
+    'taxable_amount',
+    'tax_total',
+    'shipping_total',
+    'tax_rate',
+    'tax_after_discount',
+    'coupon_id',
+    'coupon_code',
     'total',
     'payment_reference',
     'status',
@@ -38,6 +47,13 @@ class Order extends Model
     protected function casts(): array
     {
         return [
+            'subtotal' => 'integer',
+            'discount_total' => 'integer',
+            'taxable_amount' => 'integer',
+            'tax_total' => 'integer',
+            'shipping_total' => 'integer',
+            'tax_rate' => 'decimal:2',
+            'tax_after_discount' => 'boolean',
             'total' => 'integer',
             'status' => OrderStatus::class,
             'metadata' => 'array',
@@ -49,6 +65,11 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function items(): HasMany

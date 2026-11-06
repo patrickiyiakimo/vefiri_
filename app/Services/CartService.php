@@ -163,6 +163,7 @@ class CartService
 
         return [
             'id' => $item->product_key,
+            'vendor_id' => $product['vendor_id'] ?? null,
             'title' => $product['title'],
             'image' => asset($product['image']),
             'store' => $product['store'],

@@ -11,6 +11,8 @@
         ])
         ->values()
         ->all();
+
+    $taxRateLabel = rtrim(rtrim(number_format((float) $totals['tax_rate'], 2, '.', ''), '0'), '.');
 @endphp
 
 @section('content')
@@ -37,6 +39,8 @@
                     Protected by Vefiri buyer protection
                 </div>
             </div>
+
+            <form id="checkout-coupon-form" method="GET" action="{{ route('checkout.show') }}"></form>
 
             <form
                 id="checkout-form"
@@ -261,22 +265,70 @@
                     <div class="mt-4 space-y-2 border-t border-line pt-4 text-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-muted">Subtotal</span>
-                            <span class="font-semibold text-ink">₦{{ number_format($cart['subtotal']) }}</span>
+                            <span class="font-semibold text-ink">₦{{ number_format($totals['subtotal'] / 100) }}</span>
                         </div>
+                        @if ($totals['discount_total'] > 0)
+                            <div class="flex items-center justify-between">
+                                <span class="text-muted">Discount ({{ $totals['coupon_code'] }})</span>
+                                <span class="font-semibold text-choice-dark">-₦{{ number_format($totals['discount_total'] / 100) }}</span>
+                            </div>
+                        @endif
+                        @if ($totals['tax_total'] > 0)
+                            <div class="flex items-center justify-between">
+                                <span class="text-muted">Tax ({{ $taxRateLabel }}%)</span>
+                                <span class="font-semibold text-ink">₦{{ number_format($totals['tax_total'] / 100) }}</span>
+                            </div>
+                        @endif
                         <div class="flex items-center justify-between">
                             <span class="text-muted">Delivery</span>
-                            <span class="font-semibold text-choice-dark">Free</span>
+                            @if ($totals['shipping_total'] > 0)
+                                <span class="font-semibold text-ink">₦{{ number_format($totals['shipping_total'] / 100) }}</span>
+                            @else
+                                <span class="font-semibold text-choice-dark">Free</span>
+                            @endif
                         </div>
                     </div>
 
+                    <div class="mt-4 rounded-xl border border-line bg-surface p-3">
+                        <label for="checkout-coupon" class="text-2xs font-semibold text-ink-soft">Coupon code</label>
+                        <div class="mt-2 flex gap-2">
+                            <input
+                                id="checkout-coupon"
+                                name="coupon"
+                                form="checkout-coupon-form"
+                                type="text"
+                                maxlength="50"
+                                autocomplete="off"
+                                spellcheck="false"
+                                value="{{ $couponCode }}"
+                                placeholder="Enter a coupon code"
+                                class="h-9 min-w-0 flex-1 rounded-xl border border-line bg-white px-3 text-xs font-semibold tracking-wide text-ink uppercase outline-none transition placeholder:normal-case placeholder:font-medium placeholder:text-muted focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+                            >
+                            <button type="submit" form="checkout-coupon-form" class="h-9 rounded-xl bg-ink px-3 text-xs font-bold text-white transition hover:bg-ink-soft">
+                                Apply
+                            </button>
+                        </div>
+
+                        @if ($couponError)
+                            <p class="mt-2 text-2xs font-medium text-[#b42318]">{{ $couponError }}</p>
+                        @elseif ($appliedCouponCode)
+                            <p class="mt-2 flex items-center justify-between gap-2 text-2xs text-choice-dark">
+                                <span class="font-semibold">{{ $appliedCouponCode }} applied</span>
+                                <a href="{{ route('checkout.show') }}" class="font-semibold text-muted underline underline-offset-2 transition hover:text-ink">Remove</a>
+                            </p>
+                        @endif
+                    </div>
+
+                    <input type="hidden" name="coupon_code" value="{{ $appliedCouponCode }}">
+
                     <div class="mt-3 flex items-center justify-between border-t border-line pt-3">
                         <span class="text-xs font-semibold text-ink">Total</span>
-                        <span class="text-xl font-black text-brand-600">₦{{ number_format($cart['subtotal']) }}</span>
+                        <span class="text-xl font-black text-brand-600">₦{{ number_format($totals['total'] / 100) }}</span>
                     </div>
 
                     <x-buttons.primary type="submit" data-checkout-submit class="mt-4 w-full">
                         <x-ui.icon name="lock" class="size-4" data-checkout-submit-icon />
-                        <span data-checkout-submit-label>Pay ₦{{ number_format($cart['subtotal']) }}</span>
+                        <span data-checkout-submit-label>Pay ₦{{ number_format($totals['total'] / 100) }}</span>
                     </x-buttons.primary>
 
                     <p class="mt-2 text-center text-[10px] leading-4 text-muted">

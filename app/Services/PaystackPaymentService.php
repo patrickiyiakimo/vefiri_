@@ -36,10 +36,10 @@ class PaystackPaymentService
             throw new PaystackException('The order is missing its Paystack payment reference.');
         }
 
-        $amount = (int) $items->sum('line_total');
+        $amount = (int) $order->total;
 
-        if ($amount !== (int) $order->total) {
-            throw new PaystackException('The order total does not match the sum of its line totals.');
+        if ($amount <= 0) {
+            throw new PaystackException('The order total must be greater than zero.');
         }
 
         $vendorTotals = $items
@@ -55,6 +55,11 @@ class PaystackPaymentService
             'metadata' => [
                 'order_id' => $order->getKey(),
                 'idempotency_key' => $idempotencyKey,
+                'subtotal' => (int) $order->subtotal,
+                'discount_total' => (int) $order->discount_total,
+                'tax_total' => (int) $order->tax_total,
+                'shipping_total' => (int) $order->shipping_total,
+                'coupon_code' => $order->coupon_code,
                 'vendors' => $vendorTotals->isEmpty() ? [] : $this->vendorBreakdown($vendorTotals),
             ],
         ];

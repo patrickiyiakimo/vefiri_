@@ -62,9 +62,9 @@ class PaystackWebhookController extends Controller
             return response()->json(['status' => 'ignored', 'message' => 'Order not found.']);
         }
 
-        $payments->confirm($order);
+        $confirmed = $payments->confirm($order);
 
-        return response()->json(['status' => 'success']);
+        return response()->json(['status' => $confirmed ? 'success' : 'ignored']);
     }
 
     private function findPremiumPayment(string $reference): ?VendorPremiumPayment

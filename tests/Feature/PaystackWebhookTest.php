@@ -7,6 +7,7 @@ use App\Enums\VendorPlan;
 use App\Enums\VendorPremiumPaymentStatus;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Vendor;
 use App\Models\VendorPremiumPayment;
@@ -31,6 +32,9 @@ class PaystackWebhookTest extends TestCase
             'vendor.premium.price' => 500_000,
             'vendor.premium.currency' => 'NGN',
             'vendor.premium.duration_days' => 30,
+            'checkout.tax_rate' => 7.5,
+            'checkout.tax_after_discount' => true,
+            'checkout.shipping_fee' => 0,
         ]);
     }
 
@@ -50,6 +54,46 @@ class PaystackWebhookTest extends TestCase
 
         $this->assertSame(OrderStatus::Paid, $order->status);
         $this->assertNotNull($order->paid_at);
+    }
+
+    public function test_a_webhook_does_not_mark_an_order_paid_when_coupon_revalidation_fails(): void
+    {
+        $coupon = Coupon::factory()->fixed(50_000)->create(['code' => 'SAVE500']);
+        $order = Order::factory()->create([
+            'payment_reference' => 'VEF_WEBHOOK_COUPON_DISABLED',
+            'status' => OrderStatus::Pending,
+            'paid_at' => null,
+            'subtotal' => 2_000_000,
+            'discount_total' => 50_000,
+            'taxable_amount' => 1_950_000,
+            'tax_total' => 146_250,
+            'shipping_total' => 0,
+            'tax_rate' => 7.5,
+            'tax_after_discount' => true,
+            'coupon_id' => $coupon->getKey(),
+            'coupon_code' => 'SAVE500',
+            'total' => 2_096_250,
+        ]);
+        $order->items()->create([
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => 'Headphones',
+            'unit_price' => 1_000_000,
+            'quantity' => 2,
+            'line_total' => 2_000_000,
+        ]);
+        $coupon->update(['is_active' => false]);
+
+        $this->sendWebhook($this->payload('VEF_WEBHOOK_COUPON_DISABLED'))
+            ->assertOk()
+            ->assertJson(['status' => 'ignored']);
+
+        $order->refresh();
+
+        $this->assertSame(OrderStatus::Pending, $order->status);
+        $this->assertNull($order->paid_at);
+        $this->assertSame('coupon', $order->metadata['coupon_revalidation_failed']['reason']);
     }
 
     public function test_a_successful_webhook_removes_only_the_purchased_items_from_the_cart(): void

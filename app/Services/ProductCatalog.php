@@ -50,6 +50,7 @@ final class ProductCatalog
                     'badge' => 'New',
                     'category' => $product->category,
                     'is_vendor_product' => true,
+                    'vendor_id' => $product->vendor_id,
                 ],
             ])
             ->all();

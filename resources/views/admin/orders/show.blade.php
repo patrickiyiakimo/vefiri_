@@ -4,6 +4,11 @@
 @section('description', 'Review the customer, items, payment status and delivery note for this Vefiri order.')
 
 @section('content')
+    @php
+        $orderSubtotal = (int) $order->subtotal > 0 ? (int) $order->subtotal : (int) $order->total;
+        $taxRateLabel = rtrim(rtrim(number_format((float) $order->tax_rate, 2, '.', ''), '0'), '.');
+    @endphp
+
     <section class="pt-4 pb-2">
         <x-ui.container>
             <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 text-2xs text-muted">
@@ -95,11 +100,27 @@
                         <div class="mt-4 space-y-2 text-xs">
                             <div class="flex items-center justify-between">
                                 <span class="text-muted">Items</span>
-                                <span class="font-semibold text-ink">₦{{ number_format($order->total / 100) }}</span>
+                                <span class="font-semibold text-ink">₦{{ number_format($orderSubtotal / 100) }}</span>
                             </div>
+                            @if ($order->discount_total > 0)
+                                <div class="flex items-center justify-between">
+                                    <span class="text-muted">Discount ({{ $order->coupon_code }})</span>
+                                    <span class="font-semibold text-choice-dark">-₦{{ number_format($order->discount_total / 100) }}</span>
+                                </div>
+                            @endif
+                            @if ($order->tax_total > 0)
+                                <div class="flex items-center justify-between">
+                                    <span class="text-muted">Tax ({{ $taxRateLabel }}%)</span>
+                                    <span class="font-semibold text-ink">₦{{ number_format($order->tax_total / 100) }}</span>
+                                </div>
+                            @endif
                             <div class="flex items-center justify-between">
                                 <span class="text-muted">Delivery</span>
-                                <span class="font-semibold text-choice-dark">Free</span>
+                                @if ($order->shipping_total > 0)
+                                    <span class="font-semibold text-ink">₦{{ number_format($order->shipping_total / 100) }}</span>
+                                @else
+                                    <span class="font-semibold text-choice-dark">Free</span>
+                                @endif
                             </div>
                         </div>
 
