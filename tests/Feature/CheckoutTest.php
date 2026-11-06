@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -27,6 +28,9 @@ class CheckoutTest extends TestCase
             'paystack.base_url' => 'https://api.paystack.co',
             'paystack.currency' => 'NGN',
             'paystack.callback_url' => 'https://vefiri.test/checkout/callback',
+            'checkout.tax_rate' => 7.5,
+            'checkout.tax_after_discount' => true,
+            'checkout.shipping_fee' => 0,
         ]);
     }
 
@@ -55,6 +59,8 @@ class CheckoutTest extends TestCase
             ->assertSeeText('Secure checkout')
             ->assertSeeText($product->name)
             ->assertSeeText('20,000')
+            ->assertSeeText('Tax (7.5%)')
+            ->assertSeeText('21,500')
             ->assertSeeText('ada@example.com')
             ->assertSeeText('Delivery address')
             ->assertSee('name="delivery_address"', false)
@@ -274,7 +280,14 @@ class CheckoutTest extends TestCase
 
         $order = Order::query()->where('idempotency_key', 'checkout-abc-123')->firstOrFail();
 
-        $this->assertSame(2_500_000, $order->total);
+        $this->assertSame(2_500_000, $order->subtotal);
+        $this->assertSame(0, $order->discount_total);
+        $this->assertSame(2_500_000, $order->taxable_amount);
+        $this->assertSame(187_500, $order->tax_total);
+        $this->assertSame(0, $order->shipping_total);
+        $this->assertSame('7.50', $order->tax_rate);
+        $this->assertTrue($order->tax_after_discount);
+        $this->assertSame(2_687_500, $order->total);
         $this->assertSame('pending', $order->status->value);
         $this->assertSame('https://checkout.paystack.com/abc123', $order->checkout_url);
         $this->assertSame('ada@example.com', $order->customer_email);
@@ -312,7 +325,7 @@ class CheckoutTest extends TestCase
                 && $request->method() === 'POST'
                 && $request->hasHeader('Authorization', 'Bearer sk_test_secret')
                 && $data['email'] === 'ada@example.com'
-                && $data['amount'] === 2_500_000
+                && $data['amount'] === 2_687_500
                 && $data['reference'] === $order->payment_reference
                 && ! array_key_exists('split', $data)
                 && $data['metadata']['order_id'] === $order->getKey()
@@ -322,6 +335,395 @@ class CheckoutTest extends TestCase
                 && $vendors[$electronics->vendor_id]['store_name'] === $electronics->vendor->store_name
                 && $vendors[$electronics->vendor_id]['line_total'] === 500_000;
         });
+    }
+
+    public function test_the_checkout_page_shows_an_applied_fixed_coupon(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->createVendorProduct(10_000);
+        $cart = Cart::factory()->for($user)->create();
+        CartItem::factory()->for($cart)->create([
+            'product_key' => $product->catalogKey(),
+            'quantity' => 2,
+            'unit_price' => 10_000,
+        ]);
+        Coupon::factory()->fixed(50_000)->create(['code' => 'SAVE500']);
+
+        $this->actingAs($user)
+            ->get(route('checkout.show', ['coupon' => 'save500']))
+            ->assertOk()
+            ->assertSeeText('SAVE500 applied')
+            ->assertSeeText('Discount (SAVE500)')
+            ->assertSeeText('20,963')
+            ->assertSee('name="coupon_code" value="SAVE500"', false);
+    }
+
+    public function test_the_checkout_page_shows_an_invalid_coupon_message_without_a_discount(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->createVendorProduct(10_000);
+        $cart = Cart::factory()->for($user)->create();
+        CartItem::factory()->for($cart)->create([
+            'product_key' => $product->catalogKey(),
+            'quantity' => 2,
+            'unit_price' => 10_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('checkout.show', ['coupon' => 'NOTREAL']))
+            ->assertOk()
+            ->assertSeeText('This coupon is invalid or has expired.')
+            ->assertSeeText('21,500')
+            ->assertSee('name="coupon_code" value=""', false);
+    }
+
+    public function test_it_creates_an_order_with_a_fixed_coupon(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/initialize' => Http::response([
+                'status' => true,
+                'data' => ['authorization_url' => 'https://checkout.paystack.com/coupon'],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+        $product = $this->createVendorProduct(10_000);
+        $coupon = Coupon::factory()->fixed(50_000)->create(['code' => 'SAVE500']);
+
+        $this->actingAs($user)
+            ->withHeader('X-Idempotency-Key', 'checkout-coupon-fixed')
+            ->postJson(route('checkout.store'), $this->checkoutPayload([
+                ['product_id' => $product->catalogKey(), 'quantity' => 2],
+            ], 'save500'))
+            ->assertOk();
+
+        $order = Order::query()->where('idempotency_key', 'checkout-coupon-fixed')->firstOrFail();
+
+        $this->assertSame(2_000_000, $order->subtotal);
+        $this->assertSame(50_000, $order->discount_total);
+        $this->assertSame(1_950_000, $order->taxable_amount);
+        $this->assertSame(146_250, $order->tax_total);
+        $this->assertSame(0, $order->shipping_total);
+        $this->assertSame(2_096_250, $order->total);
+        $this->assertSame($coupon->getKey(), $order->coupon_id);
+        $this->assertSame('SAVE500', $order->coupon_code);
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->data()['amount'] === 2_096_250
+            && $request->data()['metadata']['coupon_code'] === 'SAVE500');
+    }
+
+    public function test_a_vendor_coupon_only_discounts_the_matching_vendor_items(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/initialize' => Http::response([
+                'status' => true,
+                'data' => ['authorization_url' => 'https://checkout.paystack.com/vendor-coupon'],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+        $fashion = $this->createVendorProduct(10_000);
+        $electronics = $this->createVendorProduct(10_000);
+        $coupon = Coupon::factory()
+            ->percentage(10)
+            ->for($fashion->vendor)
+            ->create(['code' => 'FASHION10']);
+
+        $this->actingAs($user)
+            ->withHeader('X-Idempotency-Key', 'checkout-coupon-vendor')
+            ->postJson(route('checkout.store'), $this->checkoutPayload([
+                ['product_id' => $fashion->catalogKey(), 'quantity' => 1],
+                ['product_id' => $electronics->catalogKey(), 'quantity' => 1],
+            ], 'FASHION10'))
+            ->assertOk();
+
+        $order = Order::query()->where('idempotency_key', 'checkout-coupon-vendor')->firstOrFail();
+
+        $this->assertSame($coupon->getKey(), $order->coupon_id);
+        $this->assertSame(2_000_000, $order->subtotal);
+        $this->assertSame(100_000, $order->discount_total);
+        $this->assertSame(1_900_000, $order->taxable_amount);
+        $this->assertSame(142_500, $order->tax_total);
+        $this->assertSame(2_042_500, $order->total);
+    }
+
+    public function test_a_vendor_coupon_is_rejected_when_no_cart_item_belongs_to_that_vendor(): void
+    {
+        Http::fake();
+
+        $user = User::factory()->create();
+        $fashion = $this->createVendorProduct(10_000);
+        $otherVendorProduct = $this->createVendorProduct(10_000);
+        Coupon::factory()->fixed(50_000)->for($fashion->vendor)->create(['code' => 'FASHION500']);
+
+        $this->actingAs($user)
+            ->withHeader('X-Idempotency-Key', 'checkout-coupon-ineligible')
+            ->postJson(route('checkout.store'), $this->checkoutPayload([
+                ['product_id' => $otherVendorProduct->catalogKey(), 'quantity' => 1],
+            ], 'FASHION500'))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('coupon_code')
+            ->assertJsonPath(
+                'errors.coupon_code.0',
+                'This coupon does not apply to any items in your cart.',
+            );
+
+        $this->assertSame(0, Order::query()->count());
+        Http::assertNothingSent();
+    }
+
+    public function test_an_expired_coupon_cannot_start_checkout(): void
+    {
+        Http::fake();
+
+        $user = User::factory()->create();
+        $product = $this->createVendorProduct(10_000);
+        Coupon::factory()->expired()->create(['code' => 'EXPIRED500']);
+
+        $this->actingAs($user)
+            ->withHeader('X-Idempotency-Key', 'checkout-coupon-expired')
+            ->postJson(route('checkout.store'), $this->checkoutPayload([
+                ['product_id' => $product->catalogKey(), 'quantity' => 1],
+            ], 'EXPIRED500'))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('coupon_code')
+            ->assertJsonPath(
+                'errors.coupon_code.0',
+                'This coupon is invalid or has expired.',
+            );
+
+        $this->assertSame(0, Order::query()->count());
+        Http::assertNothingSent();
+    }
+
+    public function test_tax_can_be_calculated_before_the_discount(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/initialize' => Http::response([
+                'status' => true,
+                'data' => ['authorization_url' => 'https://checkout.paystack.com/tax-before'],
+            ]),
+        ]);
+        config(['checkout.tax_after_discount' => false]);
+
+        $user = User::factory()->create();
+        $product = $this->createVendorProduct(10_000);
+        Coupon::factory()->fixed(50_000)->create(['code' => 'SAVE500']);
+
+        $this->actingAs($user)
+            ->withHeader('X-Idempotency-Key', 'checkout-tax-before-discount')
+            ->postJson(route('checkout.store'), $this->checkoutPayload([
+                ['product_id' => $product->catalogKey(), 'quantity' => 2],
+            ], 'SAVE500'))
+            ->assertOk();
+
+        $order = Order::query()->where('idempotency_key', 'checkout-tax-before-discount')->firstOrFail();
+
+        $this->assertFalse($order->tax_after_discount);
+        $this->assertSame(2_000_000, $order->taxable_amount);
+        $this->assertSame(150_000, $order->tax_total);
+        $this->assertSame(2_100_000, $order->total);
+    }
+
+    public function test_a_free_shipping_coupon_removes_the_shipping_fee(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/initialize' => Http::response([
+                'status' => true,
+                'data' => ['authorization_url' => 'https://checkout.paystack.com/free-shipping'],
+            ]),
+        ]);
+        config(['checkout.shipping_fee' => 50_000]);
+
+        $user = User::factory()->create();
+        $product = $this->createVendorProduct(10_000);
+        Coupon::factory()->freeShipping()->create(['code' => 'FREESHIP']);
+
+        $this->actingAs($user)
+            ->withHeader('X-Idempotency-Key', 'checkout-free-shipping')
+            ->postJson(route('checkout.store'), $this->checkoutPayload([
+                ['product_id' => $product->catalogKey(), 'quantity' => 1],
+            ], 'FREESHIP'))
+            ->assertOk();
+
+        $order = Order::query()->where('idempotency_key', 'checkout-free-shipping')->firstOrFail();
+
+        $this->assertSame(1_000_000, $order->subtotal);
+        $this->assertSame(0, $order->discount_total);
+        $this->assertSame(75_000, $order->tax_total);
+        $this->assertSame(0, $order->shipping_total);
+        $this->assertSame(1_075_000, $order->total);
+    }
+
+    public function test_the_callback_confirms_a_coupon_order_when_revalidation_still_matches(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/verify/VEF_COUPON_VALID' => Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'success',
+                    'reference' => 'VEF_COUPON_VALID',
+                    'amount' => 2_096_250,
+                    'currency' => 'NGN',
+                ],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+        $coupon = Coupon::factory()->fixed(50_000)->create(['code' => 'SAVE500']);
+        $order = Order::factory()->for($user)->create([
+            'payment_reference' => 'VEF_COUPON_VALID',
+            'subtotal' => 2_000_000,
+            'discount_total' => 50_000,
+            'taxable_amount' => 1_950_000,
+            'tax_total' => 146_250,
+            'shipping_total' => 0,
+            'tax_rate' => 7.5,
+            'tax_after_discount' => true,
+            'coupon_id' => $coupon->getKey(),
+            'coupon_code' => 'SAVE500',
+            'total' => 2_096_250,
+        ]);
+        $order->items()->create([
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => 'Headphones',
+            'unit_price' => 1_000_000,
+            'quantity' => 2,
+            'line_total' => 2_000_000,
+        ]);
+        $cart = Cart::factory()->for($user)->create();
+        CartItem::factory()->for($cart)->create(['product_key' => 'headphones']);
+
+        $this->actingAs($user)
+            ->get(route('checkout.callback', ['reference' => 'VEF_COUPON_VALID']))
+            ->assertOk()
+            ->assertSeeText('Payment confirmed');
+
+        $order->refresh();
+
+        $this->assertSame('paid', $order->status->value);
+        $this->assertNotNull($order->paid_at);
+        $this->assertArrayNotHasKey('coupon_revalidation_failed', $order->metadata ?? []);
+        $this->assertDatabaseMissing('cart_items', [
+            'cart_id' => $cart->getKey(),
+            'product_key' => 'headphones',
+        ]);
+    }
+
+    public function test_coupon_revalidation_blocks_payment_when_the_coupon_is_no_longer_active(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/verify/VEF_COUPON_DISABLED' => Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'success',
+                    'reference' => 'VEF_COUPON_DISABLED',
+                    'amount' => 2_096_250,
+                    'currency' => 'NGN',
+                ],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+        $coupon = Coupon::factory()->fixed(50_000)->create(['code' => 'SAVE500']);
+        $order = Order::factory()->for($user)->create([
+            'payment_reference' => 'VEF_COUPON_DISABLED',
+            'subtotal' => 2_000_000,
+            'discount_total' => 50_000,
+            'taxable_amount' => 1_950_000,
+            'tax_total' => 146_250,
+            'shipping_total' => 0,
+            'tax_rate' => 7.5,
+            'tax_after_discount' => true,
+            'coupon_id' => $coupon->getKey(),
+            'coupon_code' => 'SAVE500',
+            'total' => 2_096_250,
+        ]);
+        $order->items()->create([
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => 'Headphones',
+            'unit_price' => 1_000_000,
+            'quantity' => 2,
+            'line_total' => 2_000_000,
+        ]);
+        $cart = Cart::factory()->for($user)->create();
+        CartItem::factory()->for($cart)->create(['product_key' => 'headphones']);
+        $coupon->update(['is_active' => false]);
+
+        $this->actingAs($user)
+            ->get(route('checkout.callback', ['reference' => 'VEF_COUPON_DISABLED']))
+            ->assertOk()
+            ->assertSeeText('Payment is being confirmed');
+
+        $order->refresh();
+
+        $this->assertSame('pending', $order->status->value);
+        $this->assertSame('coupon', $order->metadata['coupon_revalidation_failed']['reason']);
+        $this->assertDatabaseHas('cart_items', [
+            'cart_id' => $cart->getKey(),
+            'product_key' => 'headphones',
+        ]);
+    }
+
+    public function test_coupon_revalidation_blocks_payment_when_the_order_totals_no_longer_match(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://api.paystack.co/transaction/verify/VEF_COUPON_TOTAL_MISMATCH' => Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'success',
+                    'reference' => 'VEF_COUPON_TOTAL_MISMATCH',
+                    'amount' => 2_096_250,
+                    'currency' => 'NGN',
+                ],
+            ]),
+        ]);
+
+        $user = User::factory()->create();
+        $coupon = Coupon::factory()->fixed(50_000)->create(['code' => 'SAVE500']);
+        $order = Order::factory()->for($user)->create([
+            'payment_reference' => 'VEF_COUPON_TOTAL_MISMATCH',
+            'subtotal' => 2_000_000,
+            'discount_total' => 50_000,
+            'taxable_amount' => 1_950_000,
+            'tax_total' => 0,
+            'shipping_total' => 0,
+            'tax_rate' => 7.5,
+            'tax_after_discount' => true,
+            'coupon_id' => $coupon->getKey(),
+            'coupon_code' => 'SAVE500',
+            'total' => 2_096_250,
+        ]);
+        $order->items()->create([
+            'vendor_id' => null,
+            'product_id' => null,
+            'product_key' => 'headphones',
+            'product_name' => 'Headphones',
+            'unit_price' => 1_000_000,
+            'quantity' => 2,
+            'line_total' => 2_000_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('checkout.callback', ['reference' => 'VEF_COUPON_TOTAL_MISMATCH']))
+            ->assertOk()
+            ->assertSeeText('Payment is being confirmed');
+
+        $order->refresh();
+
+        $this->assertSame('pending', $order->status->value);
+        $this->assertSame('totals', $order->metadata['coupon_revalidation_failed']['reason']);
     }
 
     public function test_replaying_an_idempotency_key_returns_the_existing_checkout(): void
@@ -415,7 +817,9 @@ class CheckoutTest extends TestCase
 
         $order = Order::query()->where('idempotency_key', 'checkout-static')->firstOrFail();
 
-        $this->assertSame($unitPrice * 2, $order->total);
+        $this->assertSame($unitPrice * 2, $order->subtotal);
+        $this->assertSame(96_000, $order->tax_total);
+        $this->assertSame(1_376_000, $order->total);
 
         $this->assertDatabaseHas('order_items', [
             'order_id' => $order->getKey(),
@@ -431,9 +835,9 @@ class CheckoutTest extends TestCase
         Http::assertSent(function (ClientRequest $request): bool {
             $data = $request->data();
 
-            return $data['amount'] === 1_280_000
-                && ! array_key_exists('split', $data)
-                && $data['metadata']['vendors'] === [];
+            return $data['amount'] === 1_376_000
+            && ! array_key_exists('split', $data)
+            && $data['metadata']['vendors'] === [];
         });
     }
 
@@ -543,10 +947,11 @@ class CheckoutTest extends TestCase
      * @param  array<int, array{product_id: string, quantity: int}>  $items
      * @return array<string, mixed>
      */
-    private function checkoutPayload(array $items): array
+    private function checkoutPayload(array $items, ?string $couponCode = null): array
     {
         return [
             'items' => $items,
+            'coupon_code' => $couponCode,
             'customer_name' => 'Ada Obi',
             'customer_email' => 'ada@example.com',
             'customer_phone' => '08012345678',

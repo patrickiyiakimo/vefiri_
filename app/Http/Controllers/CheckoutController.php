@@ -9,6 +9,7 @@ use App\Http\Requests\ProcessCheckoutRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\CartService;
+use App\Services\OrderCalculator;
 use App\Services\OrderPaymentService;
 use App\Services\PaystackPaymentService;
 use App\Services\ProductCatalog;
@@ -28,7 +29,7 @@ class CheckoutController extends Controller
 
     public function __construct(private readonly ProductCatalog $catalog) {}
 
-    public function show(Request $request, CartService $cart): View|RedirectResponse
+    public function show(Request $request, CartService $cart, OrderCalculator $calculator): View|RedirectResponse
     {
         $summary = $cart->summary($request->user());
 
@@ -38,9 +39,25 @@ class CheckoutController extends Controller
                 ->with('status', 'Your cart is empty. Add an item before checking out.');
         }
 
+        $couponCode = $request->string('coupon')->trim()->toString();
+        $couponError = null;
+        $appliedCouponCode = null;
+
+        try {
+            $totals = $calculator->calculate($this->cartLineItems($summary['items']), $couponCode);
+            $appliedCouponCode = $totals['coupon_code'];
+        } catch (ValidationException $exception) {
+            $couponError = $exception->validator->errors()->first('coupon_code');
+            $totals = $calculator->calculate($this->cartLineItems($summary['items']));
+        }
+
         return view('checkout.index', [
             ...$this->sharedData(),
             'cart' => $summary,
+            'totals' => $totals,
+            'couponCode' => $couponCode,
+            'appliedCouponCode' => $appliedCouponCode,
+            'couponError' => $couponError,
             'idempotencyKey' => (string) Str::uuid(),
         ]);
     }
@@ -89,8 +106,11 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function processCheckout(ProcessCheckoutRequest $request, PaystackPaymentService $payments): JsonResponse
-    {
+    public function processCheckout(
+        ProcessCheckoutRequest $request,
+        PaystackPaymentService $payments,
+        OrderCalculator $calculator,
+    ): JsonResponse {
         $data = $request->validated();
         $user = $request->user();
         $idempotencyKey = (string) $data['idempotency_key'];
@@ -103,7 +123,7 @@ class CheckoutController extends Controller
              * level. The losing request catches the unique violation below and
              * returns the winner's existing checkout URL.
              */
-            $order = DB::transaction(function () use ($data, $user, $idempotencyKey, $payments): Order {
+            $order = DB::transaction(function () use ($data, $user, $idempotencyKey, $payments, $calculator): Order {
                 $existing = Order::query()
                     ->where('idempotency_key', $idempotencyKey)
                     ->lockForUpdate()
@@ -116,7 +136,11 @@ class CheckoutController extends Controller
                 }
 
                 $lineItems = $this->buildLineItems($data['items']);
-                $total = (int) collect($lineItems)->sum('line_total');
+                $totals = $calculator->calculate(
+                    $lineItems,
+                    $data['coupon_code'] ?? null,
+                    lockCoupon: true,
+                );
 
                 $order = Order::query()->create([
                     'user_id' => $user->getKey(),
@@ -129,7 +153,16 @@ class CheckoutController extends Controller
                     'delivery_state' => $data['delivery_state'],
                     'delivery_postal_code' => $data['delivery_postal_code'] ?? null,
                     'delivery_notes' => $data['delivery_notes'] ?? null,
-                    'total' => $total,
+                    'subtotal' => $totals['subtotal'],
+                    'discount_total' => $totals['discount_total'],
+                    'taxable_amount' => $totals['taxable_amount'],
+                    'tax_total' => $totals['tax_total'],
+                    'shipping_total' => $totals['shipping_total'],
+                    'tax_rate' => $totals['tax_rate'],
+                    'tax_after_discount' => $totals['tax_after_discount'],
+                    'coupon_id' => $totals['coupon_id'],
+                    'coupon_code' => $totals['coupon_code'],
+                    'total' => $totals['total'],
                     'payment_reference' => $this->generatePaymentReference(),
                     'status' => OrderStatus::Pending,
                     'idempotency_key' => $idempotencyKey,
@@ -165,6 +198,21 @@ class CheckoutController extends Controller
             'reference' => $order->payment_reference,
             'checkout_url' => $order->checkout_url,
         ]);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array{vendor_id: int|string|null, line_total: int}>
+     */
+    private function cartLineItems(array $items): array
+    {
+        return collect($items)
+            ->map(fn (array $item): array => [
+                'vendor_id' => $item['vendor_id'] ?? null,
+                'line_total' => (int) $item['line_total'] * 100,
+            ])
+            ->values()
+            ->all();
     }
 
     /**

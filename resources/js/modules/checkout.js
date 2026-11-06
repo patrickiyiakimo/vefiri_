@@ -99,6 +99,7 @@ export function initCheckout() {
                 },
                 body: JSON.stringify({
                     items,
+                    coupon_code: fieldValue('coupon_code'),
                     customer_name: fieldValue('customer_name'),
                     customer_email: fieldValue('customer_email'),
                     customer_phone: fieldValue('customer_phone'),

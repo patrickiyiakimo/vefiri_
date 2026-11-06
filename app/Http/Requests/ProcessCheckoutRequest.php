@@ -31,6 +31,7 @@ class ProcessCheckoutRequest extends FormRequest
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.product_id' => ['required', 'string', 'max:255'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99'],
+            'coupon_code' => ['nullable', 'string', 'max:50'],
             'customer_name' => ['nullable', 'string', 'max:120'],
             'customer_email' => ['nullable', 'string', 'email', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:32'],
