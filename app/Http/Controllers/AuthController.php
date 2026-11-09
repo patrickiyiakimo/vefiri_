@@ -49,7 +49,7 @@ class AuthController extends Controller
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             throw ValidationException::withMessages([
-                'email' => 'Too many login attempts. Please wait a minute and try again.',
+                'email' => 'Too many login attempts. Please try again later.',
             ]);
         }
 
