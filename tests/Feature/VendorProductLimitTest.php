@@ -19,7 +19,8 @@ class VendorProductLimitTest extends TestCase
 
         config([
             'vendor.free_product_limit' => 10,
-            'vendor.premium_product_limit' => null,
+            'vendor.product_slots.price' => 100_000,
+            'vendor.product_slots.bundles' => [10, 20, 30, 40],
         ]);
     }
 
@@ -70,11 +71,11 @@ class VendorProductLimitTest extends TestCase
         $this->assertSame(10, $vendor->products()->count());
     }
 
-    public function test_premium_vendors_can_exceed_the_free_product_limit(): void
+    public function test_vendors_with_purchased_slots_can_exceed_the_free_product_limit(): void
     {
         Storage::fake('public');
 
-        $vendor = Vendor::factory()->premium()->create();
+        $vendor = Vendor::factory()->withProductSlots(10)->create();
         Product::factory()->count(10)->for($vendor)->create();
 
         $this->actingAs($vendor->user)
@@ -84,19 +85,16 @@ class VendorProductLimitTest extends TestCase
         $this->assertSame(11, $vendor->products()->count());
     }
 
-    public function test_expired_premium_vendors_fall_back_to_the_free_product_limit(): void
+    public function test_purchased_slots_are_permanent_and_raise_the_total_limit(): void
     {
-        Storage::fake('public');
+        $vendor = Vendor::factory()->withProductSlots(20)->create();
 
-        $vendor = Vendor::factory()->expiredPremium()->create();
-        Product::factory()->count(10)->for($vendor)->create();
+        $this->assertSame(30, $vendor->productLimit());
+        $this->assertFalse($vendor->hasReachedProductLimit());
 
-        $this->actingAs($vendor->user)
-            ->post(route('vendor.products.store'), $this->productPayload())
-            ->assertRedirect(route('vendor.premium.show'))
-            ->assertSessionHas('limit_reached', true);
+        Product::factory()->count(30)->for($vendor)->create();
 
-        $this->assertSame(10, $vendor->products()->count());
+        $this->assertTrue($vendor->fresh()->hasReachedProductLimit());
     }
 
     public function test_the_create_page_redirects_to_premium_when_the_limit_is_reached(): void

@@ -45,7 +45,7 @@
                 'bg-surface text-ink-soft hover:text-ink' => ! request()->routeIs('vendor.premium.*'),
             ])
         >
-            {{ $vendor->isPremium() ? 'Premium' : 'Upgrade' }}
+            Product slots
         </a>
         <a href="{{ route('vendors.status') }}" class="rounded-full bg-surface px-3 py-1.5 text-2xs font-semibold text-ink-soft transition hover:text-ink">
             Store profile

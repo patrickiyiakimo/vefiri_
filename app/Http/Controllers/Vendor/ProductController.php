@@ -140,7 +140,7 @@ class ProductController extends Controller
         return redirect()
             ->route('vendor.premium.show')
             ->with([
-                'status' => 'You have reached your product limit. Upgrade to Premium to keep uploading products.',
+                'status' => 'You have reached your product limit. Buy more product slots to keep uploading products.',
                 'limit_reached' => true,
             ]);
     }

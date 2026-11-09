@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'plan',
     'premium_started_at',
     'premium_until',
+    'product_slots',
 ])]
 class Vendor extends Model
 {
@@ -35,6 +36,7 @@ class Vendor extends Model
             'plan' => VendorPlan::class,
             'premium_started_at' => 'datetime',
             'premium_until' => 'datetime',
+            'product_slots' => 'integer',
         ];
     }
 
@@ -60,8 +62,7 @@ class Vendor extends Model
 
     public function isPremium(): bool
     {
-        return $this->plan === VendorPlan::Premium
-            && ($this->premium_until === null || $this->premium_until->isFuture());
+        return $this->product_slots > 0;
     }
 
     public function currentPlan(): VendorPlan
@@ -69,21 +70,23 @@ class Vendor extends Model
         return $this->isPremium() ? VendorPlan::Premium : VendorPlan::Free;
     }
 
-    public function productLimit(): ?int
+    public function freeProductLimit(): int
     {
-        if (! $this->isPremium()) {
-            return (int) config('vendor.free_product_limit', 10);
-        }
+        return max(0, (int) config('vendor.free_product_limit', 10));
+    }
 
-        $limit = config('vendor.premium_product_limit');
+    public function productLimit(): int
+    {
+        return $this->freeProductLimit() + $this->product_slots;
+    }
 
-        return is_numeric($limit) ? (int) $limit : null;
+    public function remainingProductSlots(): int
+    {
+        return max(0, $this->productLimit() - $this->products()->count());
     }
 
     public function hasReachedProductLimit(): bool
     {
-        $limit = $this->productLimit();
-
-        return $limit !== null && $this->products()->count() >= $limit;
+        return $this->products()->count() >= $this->productLimit();
     }
 }

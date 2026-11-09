@@ -38,13 +38,13 @@
                         </span>
                         <div>
                             <p class="text-xs font-bold text-[#8a5a00]">You have reached your product limit</p>
-                            <p class="mt-0.5 text-2xs leading-5 text-[#8a5a00]/80">You have uploaded {{ number_format($products->total()) }} of {{ number_format($vendor->productLimit()) }} products on your {{ $vendor->currentPlan()->label() }} plan. Upgrade to Premium to keep uploading.</p>
+                            <p class="mt-0.5 text-2xs leading-5 text-[#8a5a00]/80">You have uploaded {{ number_format($products->total()) }} of {{ number_format($vendor->productLimit()) }} products. Buy more product slots to keep uploading.</p>
                         </div>
                     </div>
 
                     <x-buttons.primary href="{{ route('vendor.premium.show') }}" size="sm">
                         <x-ui.icon name="sparkles" class="size-3.5" />
-                        Upgrade to Premium
+                        Buy product slots
                     </x-buttons.primary>
                 </div>
             @endif

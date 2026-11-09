@@ -28,16 +28,14 @@ class VendorProductService
 
     private function ensureWithinProductLimit(Vendor $vendor): void
     {
-        $limit = $vendor->productLimit();
-
-        if ($limit === null || $vendor->products()->count() < $limit) {
+        if (! $vendor->hasReachedProductLimit()) {
             return;
         }
 
+        $limit = $vendor->productLimit();
+
         throw ValidationException::withMessages([
-            'limit' => $vendor->isPremium()
-                ? "Your Premium plan allows up to {$limit} products."
-                : "Your free plan allows up to {$limit} products. Upgrade to Premium to add more.",
+            'limit' => "You have reached your product limit of {$limit}. Buy more product slots to add more.",
         ]);
     }
 }

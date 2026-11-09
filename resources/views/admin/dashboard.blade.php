@@ -30,7 +30,7 @@
                 @foreach ([
                     ['label' => 'Total users', 'value' => $stats['users'], 'icon' => 'user'],
                     ['label' => 'Verified vendors', 'value' => $stats['vendors'], 'icon' => 'store'],
-                    ['label' => 'Premium vendors', 'value' => $stats['premiumVendors'], 'icon' => 'sparkles'],
+                    ['label' => 'Vendors with extra slots', 'value' => $stats['slotVendors'], 'icon' => 'sparkles'],
                     ['label' => 'Pending applications', 'value' => $stats['pendingApplications'], 'icon' => 'clock'],
                     ['label' => 'Approved applications', 'value' => $stats['approvedApplications'], 'icon' => 'badge-check'],
                 ] as $stat)
@@ -111,11 +111,11 @@
             <section class="mt-4 overflow-hidden rounded-2xl border border-black/[0.04] bg-white shadow-card">
                 <header class="flex items-center justify-between border-b border-line px-5 py-4">
                     <div>
-                        <h2 class="text-sm font-bold text-ink">Premium vendors</h2>
+                        <h2 class="text-sm font-bold text-ink">Vendors with extra product slots</h2>
                         <p class="mt-0.5 text-2xs text-muted">
-                            {{ number_format($stats['premiumVendors']) }}
-                            {{ $stats['premiumVendors'] === 1 ? 'vendor has' : 'vendors have' }}
-                            unlimited product uploads.
+                            {{ number_format($stats['slotVendors']) }}
+                            {{ $stats['slotVendors'] === 1 ? 'vendor has' : 'vendors have' }}
+                            purchased additional product slots.
                         </p>
                     </div>
                     <a href="{{ route('admin.vendors.index') }}" class="text-2xs font-semibold text-brand-600">View all vendors</a>
@@ -128,13 +128,12 @@
                                 <th class="px-4 py-3 font-semibold">Store</th>
                                 <th class="px-4 py-3 font-semibold">Contact</th>
                                 <th class="px-4 py-3 font-semibold">Products</th>
-                                <th class="px-4 py-3 font-semibold">Premium started</th>
-                                <th class="px-4 py-3 font-semibold">Premium until</th>
+                                <th class="px-4 py-3 font-semibold">Slots purchased</th>
                                 <th class="px-4 py-3 font-semibold">Latest payment</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-line">
-                            @forelse ($premiumVendors as $vendor)
+                            @forelse ($slotVendors as $vendor)
                                 @php($payment = $vendor->premiumPayments->first())
                                 <tr class="hover:bg-[#fafafa]">
                                     <td class="px-4 py-3">
@@ -153,11 +152,13 @@
                                         <p class="mt-0.5 text-[10px] text-muted">{{ $vendor->phone }}</p>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <span class="rounded-full bg-[#e7f8f2] px-2 py-0.5 text-[10px] font-bold text-choice-dark">Unlimited</span>
+                                        <span class="rounded-full bg-[#e7f8f2] px-2 py-0.5 text-[10px] font-bold text-choice-dark">{{ number_format($vendor->productLimit()) }} limit</span>
                                         <p class="mt-1 text-[10px] text-muted">{{ number_format($vendor->products_count) }} uploaded</p>
                                     </td>
-                                    <td class="px-4 py-3 text-muted">{{ $vendor->premium_started_at?->format('M j, Y') ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-muted">{{ $vendor->premium_until?->format('M j, Y') ?? 'Lifetime' }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="font-semibold text-ink">{{ number_format($vendor->product_slots) }}</span>
+                                        <p class="mt-0.5 text-[10px] text-muted">extra products</p>
+                                    </td>
                                     <td class="px-4 py-3">
                                         @if ($payment !== null)
                                             <p class="font-semibold text-ink">{{ $payment->currency }} {{ number_format($payment->amount / 100) }}</p>
@@ -171,7 +172,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-4 py-8 text-center text-muted">No vendors have upgraded to Premium yet.</td>
+                                    <td colspan="5" class="px-4 py-8 text-center text-muted">No vendors have purchased extra product slots yet.</td>
                                 </tr>
                             @endforelse
                         </tbody>

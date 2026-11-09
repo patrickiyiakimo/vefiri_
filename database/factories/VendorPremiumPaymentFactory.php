@@ -20,8 +20,9 @@ class VendorPremiumPaymentFactory extends Factory
     {
         return [
             'vendor_id' => Vendor::factory(),
-            'reference' => 'VEF_PREM_'.Str::upper(Str::random(20)),
-            'amount' => 500_000,
+            'reference' => 'VEF_SLOT_'.Str::upper(Str::random(20)),
+            'amount' => 1_000_000,
+            'quantity' => 10,
             'currency' => 'NGN',
             'status' => VendorPremiumPaymentStatus::Pending,
             'idempotency_key' => (string) Str::uuid(),

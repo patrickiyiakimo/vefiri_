@@ -13,18 +13,19 @@ class AdminPremiumVendorsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_the_admin_dashboard_lists_active_premium_vendors_and_their_payments(): void
+    public function test_the_admin_dashboard_lists_vendors_with_extra_slots_and_their_payments(): void
     {
         $admin = User::factory()->admin()->create();
 
-        $vendor = Vendor::factory()->premium()->create([
+        $vendor = Vendor::factory()->withProductSlots(10)->create([
             'store_name' => 'Ada Luxury',
             'business_email' => 'ada@example.com',
         ]);
 
         VendorPremiumPayment::factory()->for($vendor)->paid()->create([
-            'reference' => 'VEF_PREM_ADMIN_DASHBOARD',
-            'amount' => 500_000,
+            'reference' => 'VEF_SLOT_ADMIN_DASHBOARD',
+            'amount' => 1_000_000,
+            'quantity' => 10,
             'currency' => 'NGN',
             'paid_at' => now(),
         ]);
@@ -34,21 +35,21 @@ class AdminPremiumVendorsTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSeeText('Premium vendors')
+            ->assertSeeText('Vendors with extra product slots')
             ->assertSeeText('Ada Luxury')
             ->assertSeeText('ada@example.com')
-            ->assertSeeText('Unlimited')
+            ->assertSeeText('20 limit')
             ->assertSeeText('3 uploaded')
-            ->assertSeeText('NGN 5,000')
-            ->assertSeeText('VEF_PREM_ADMIN_DASHBOARD');
+            ->assertSeeText('NGN 10,000')
+            ->assertSeeText('VEF_SLOT_ADMIN_DASHBOARD');
     }
 
-    public function test_the_admin_dashboard_only_lists_currently_active_premium_vendors(): void
+    public function test_the_admin_dashboard_only_lists_vendors_with_purchased_slots(): void
     {
         $admin = User::factory()->admin()->create();
 
-        $active = Vendor::factory()->premium()->create([
-            'store_name' => 'Active Premium Store',
+        $active = Vendor::factory()->withProductSlots(10)->create([
+            'store_name' => 'Active Slots Store',
         ]);
 
         $expired = Vendor::factory()->expiredPremium()->create([
@@ -60,7 +61,7 @@ class AdminPremiumVendorsTest extends TestCase
         ]);
 
         VendorPremiumPayment::factory()->for($free)->paid()->create([
-            'reference' => 'VEF_PREM_FREE_PLAN',
+            'reference' => 'VEF_SLOT_FREE_PLAN',
         ]);
 
         $this->actingAs($admin)
@@ -69,33 +70,33 @@ class AdminPremiumVendorsTest extends TestCase
             ->assertSeeText($active->store_name)
             ->assertDontSeeText($expired->store_name)
             ->assertDontSeeText($free->store_name)
-            ->assertDontSeeText('VEF_PREM_FREE_PLAN');
+            ->assertDontSeeText('VEF_SLOT_FREE_PLAN');
     }
 
-    public function test_the_admin_dashboard_uses_the_latest_paid_premium_payment(): void
+    public function test_the_admin_dashboard_uses_the_latest_paid_slots_payment(): void
     {
         $admin = User::factory()->admin()->create();
-        $vendor = Vendor::factory()->premium()->create();
+        $vendor = Vendor::factory()->withProductSlots(10)->create();
 
         VendorPremiumPayment::factory()->for($vendor)->paid()->create([
-            'reference' => 'VEF_PREM_OLD_PAYMENT',
+            'reference' => 'VEF_SLOT_OLD_PAYMENT',
             'paid_at' => now()->subDays(10),
         ]);
 
         VendorPremiumPayment::factory()->for($vendor)->paid()->create([
-            'reference' => 'VEF_PREM_NEWEST_PAYMENT',
+            'reference' => 'VEF_SLOT_NEWEST_PAYMENT',
             'paid_at' => now(),
         ]);
 
         VendorPremiumPayment::factory()->for($vendor)->create([
-            'reference' => 'VEF_PREM_UNPAID_PAYMENT',
+            'reference' => 'VEF_SLOT_UNPAID_PAYMENT',
         ]);
 
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSeeText('VEF_PREM_NEWEST_PAYMENT')
-            ->assertDontSeeText('VEF_PREM_OLD_PAYMENT')
-            ->assertDontSeeText('VEF_PREM_UNPAID_PAYMENT');
+            ->assertSeeText('VEF_SLOT_NEWEST_PAYMENT')
+            ->assertDontSeeText('VEF_SLOT_OLD_PAYMENT')
+            ->assertDontSeeText('VEF_SLOT_UNPAID_PAYMENT');
     }
 }

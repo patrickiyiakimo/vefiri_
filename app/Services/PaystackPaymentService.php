@@ -94,7 +94,7 @@ class PaystackPaymentService
         $reference = (string) $payment->reference;
 
         if ($reference === '') {
-            throw new PaystackException('The premium payment is missing its Paystack reference.');
+            throw new PaystackException('The product slots payment is missing its Paystack reference.');
         }
 
         $payload = [
@@ -103,9 +103,10 @@ class PaystackPaymentService
             'currency' => $payment->currency,
             'reference' => $reference,
             'metadata' => [
-                'type' => 'vendor_premium',
+                'type' => 'vendor_product_slots',
                 'vendor_id' => $vendor->getKey(),
                 'payment_id' => $payment->getKey(),
+                'quantity' => $payment->quantity,
                 'idempotency_key' => $payment->idempotency_key,
             ],
         ];
@@ -118,7 +119,7 @@ class PaystackPaymentService
 
         $response = $this->send('post', '/transaction/initialize', $payload);
 
-        $this->ensureSuccessful($response, 'Paystack could not initialize the premium upgrade payment.');
+        $this->ensureSuccessful($response, 'Paystack could not initialize the product slots payment.');
 
         $authorizationUrl = $response->json('data.authorization_url');
 
