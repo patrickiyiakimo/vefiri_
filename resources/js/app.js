@@ -10,6 +10,7 @@ import { initLimitModal } from './modules/limit-modal';
 import { initLoadMore } from './modules/load-more';
 import { initNewsletters } from './modules/newsletter';
 import { initPasswordToggles } from './modules/password-toggle';
+import { initProductSlots } from './modules/product-slots';
 import { initSearch } from './modules/search';
 import { initTabs } from './modules/tabs';
 import { initToasts } from './modules/toast';
@@ -21,6 +22,7 @@ const initStorefront = () => {
     initDrawers();
     initAuthModal();
     initLimitModal();
+    initProductSlots();
     initPasswordToggles();
     initCarousels();
     initTabs();

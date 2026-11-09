@@ -26,11 +26,13 @@ class PremiumController extends Controller
             ...$this->sharedData(),
             'vendor' => $vendor,
             'idempotencyKey' => (string) Str::uuid(),
-            'price' => (int) config('vendor.premium.price'),
-            'currency' => (string) config('vendor.premium.currency', 'NGN'),
-            'durationDays' => (int) config('vendor.premium.duration_days', 30),
-            'freeProductLimit' => (int) config('vendor.free_product_limit', 10),
-            'premiumProductLimit' => config('vendor.premium_product_limit'),
+            'unitPrice' => (int) config('vendor.product_slots.price'),
+            'bundles' => (array) config('vendor.product_slots.bundles', []),
+            'currency' => (string) config('vendor.product_slots.currency', 'NGN'),
+            'freeProductLimit' => $vendor->freeProductLimit(),
+            'productSlotCount' => $vendor->product_slots,
+            'productLimit' => $vendor->productLimit(),
+            'productCount' => $vendor->products()->count(),
             'latestPayment' => $vendor->premiumPayments()->latest()->first(),
         ]);
     }
@@ -41,6 +43,7 @@ class PremiumController extends Controller
             $payment = $premium->initialize(
                 $this->vendor($request),
                 (string) $request->validated('idempotency_key'),
+                (int) $request->validated('quantity'),
             );
         } catch (PaystackException $exception) {
             report($exception);

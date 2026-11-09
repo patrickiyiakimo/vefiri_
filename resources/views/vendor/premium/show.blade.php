@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
-@section('title', 'Premium plan | Vefiri vendor')
-@section('description', 'Upgrade your Vefiri vendor account to Premium and upload more products.')
+@section('title', 'Product slots | Vefiri vendor')
+@section('description', 'Buy extra product slots to list more products on your Vefiri storefront.')
 
 @section('content')
     <section class="pt-4 pb-2">
@@ -11,12 +11,12 @@
                 <x-ui.icon name="chevron-right" class="size-3" />
                 <a href="{{ route('vendor.dashboard') }}" class="transition hover:text-ink">Vendor dashboard</a>
                 <x-ui.icon name="chevron-right" class="size-3" />
-                <span class="text-ink-soft">Premium plan</span>
+                <span class="text-ink-soft">Product slots</span>
             </nav>
 
             <div class="mt-3">
-                <h1 class="text-2xl font-black tracking-tight text-ink">Premium plan</h1>
-                <p class="mt-1 text-xs text-muted">Unlock a bigger catalogue and keep growing your storefront.</p>
+                <h1 class="text-2xl font-black tracking-tight text-ink">Product slots</h1>
+                <p class="mt-1 text-xs text-muted">Buy extra product slots once and keep them forever.</p>
             </div>
 
             <div class="mt-4">
@@ -36,22 +36,22 @@
             <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                 <section class="rounded-2xl border border-black/[0.04] bg-white shadow-card">
                     <header class="border-b border-line px-5 py-4">
-                        <h2 class="text-sm font-bold text-ink">Your plan</h2>
-                        <p class="mt-0.5 text-2xs text-muted">Entitlements update automatically once Paystack confirms your payment.</p>
+                        <h2 class="text-sm font-bold text-ink">Your product slots</h2>
+                        <p class="mt-0.5 text-2xs text-muted">Slots are added automatically once Paystack confirms your payment.</p>
                     </header>
 
                     <div class="grid gap-4 px-5 py-5">
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <p class="text-2xs text-muted">Current plan</p>
-                                <p class="mt-1 text-lg font-black text-ink">{{ $vendor->currentPlan()->label() }}</p>
+                                <p class="text-2xs text-muted">Total product limit</p>
+                                <p class="mt-1 text-lg font-black text-ink">{{ number_format($productLimit) }} products</p>
                             </div>
                             <span @class([
                                 'rounded-full px-2.5 py-1 text-[10px] font-bold',
-                                'bg-[#e7f8f2] text-choice-dark' => $vendor->isPremium(),
-                                'bg-surface text-muted' => ! $vendor->isPremium(),
+                                'bg-[#e7f8f2] text-choice-dark' => $productSlotCount > 0,
+                                'bg-surface text-muted' => $productSlotCount === 0,
                             ])>
-                                {{ $vendor->isPremium() ? 'Active' : 'Free tier' }}
+                                {{ $productSlotCount > 0 ? number_format($productSlotCount).' extra slots' : 'Free tier' }}
                             </span>
                         </div>
 
@@ -61,73 +61,92 @@
                                 <dd class="font-semibold text-ink">{{ number_format($freeProductLimit) }} products</dd>
                             </div>
                             <div class="flex items-center justify-between gap-4">
-                                <dt class="text-muted">Premium product limit</dt>
-                                <dd class="font-semibold text-ink">
-                                    {{ $premiumProductLimit === null ? 'Unlimited' : number_format((int) $premiumProductLimit).' products' }}
-                                </dd>
+                                <dt class="text-muted">Slots purchased</dt>
+                                <dd class="font-semibold text-ink">{{ number_format($productSlotCount) }} products</dd>
                             </div>
-                            @if ($vendor->premium_until !== null)
-                                <div class="flex items-center justify-between gap-4">
-                                    <dt class="text-muted">Premium paid until</dt>
-                                    <dd class="font-semibold text-ink">{{ $vendor->premium_until->toFormattedDateString() }}</dd>
-                                </div>
-                            @endif
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-muted">Products uploaded</dt>
+                                <dd class="font-semibold text-ink">{{ number_format($productCount) }} of {{ number_format($productLimit) }}</dd>
+                            </div>
                         </dl>
+
+                        <div class="h-2 overflow-hidden rounded-full bg-surface">
+                            <div
+                                class="h-full rounded-full bg-choice"
+                                style="width: {{ $productLimit > 0 ? min(100, ($productCount / $productLimit) * 100) : 0 }}%"
+                            ></div>
+                        </div>
 
                         @if ($vendor->hasReachedProductLimit())
                             <p class="rounded-xl bg-[#fff7e6] px-4 py-3 text-2xs font-semibold text-[#8a5a00]">
-                                You have reached your current product limit. Upgrade to keep uploading.
+                                You have used all {{ number_format($productLimit) }} of your product slots. Buy more slots to keep uploading.
+                            </p>
+                        @else
+                            <p class="rounded-xl bg-surface px-4 py-3 text-2xs text-ink-soft">
+                                You can upload {{ number_format($vendor->remainingProductSlots()) }} more {{ $vendor->remainingProductSlots() === 1 ? 'product' : 'products' }} on your current limit.
                             </p>
                         @endif
                     </div>
                 </section>
 
-                <section id="premium-payment" class="rounded-2xl border border-black/[0.04] bg-white shadow-card">
+                <section id="product-slots-payment" class="rounded-2xl border border-black/[0.04] bg-white shadow-card">
                     <header class="border-b border-line px-5 py-4">
-                        <h2 class="text-sm font-bold text-ink">{{ $vendor->isPremium() ? 'Extend Premium' : 'Upgrade to Premium' }}</h2>
-                        <p class="mt-0.5 text-2xs text-muted">Secure payment is handled by Paystack.</p>
+                        <h2 class="text-sm font-bold text-ink">Buy product slots</h2>
+                        <p class="mt-0.5 text-2xs text-muted">
+                            &#8358;{{ number_format($unitPrice / 100) }} per extra product. Secure payment is handled by Paystack.
+                        </p>
                     </header>
 
                     <div class="grid gap-4 px-5 py-5">
-                        <div>
-                            <p class="text-3xl font-black tracking-tight text-ink">
-                                &#8358;{{ number_format($price / 100) }}
-                            </p>
-                            <p class="mt-1 text-2xs text-muted">
-                                @if ($durationDays > 0)
-                                    {{ $durationDays }} days of Premium access. Paying again extends your current expiry date.
-                                @else
-                                    One-time payment for lifetime Premium access.
-                                @endif
-                            </p>
-                        </div>
-
-                        <ul class="grid gap-2 text-xs text-ink-soft">
-                            <li class="flex items-start gap-2">
-                                <x-ui.icon name="badge-check" class="mt-0.5 size-3.5 shrink-0 text-choice-dark" />
-                                <span>{{ $premiumProductLimit === null ? 'Upload unlimited products' : 'Upload up to '.number_format((int) $premiumProductLimit).' products' }}</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <x-ui.icon name="badge-check" class="mt-0.5 size-3.5 shrink-0 text-choice-dark" />
-                                <span>Your account is upgraded automatically after Paystack confirms payment</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <x-ui.icon name="badge-check" class="mt-0.5 size-3.5 shrink-0 text-choice-dark" />
-                                <span>No manual approval needed</span>
-                            </li>
-                        </ul>
-
-                        <form id="premium-payment-form" method="POST" action="{{ route('vendor.premium.store') }}" class="grid gap-2">
+                        <form
+                            id="premium-payment-form"
+                            method="POST"
+                            action="{{ route('vendor.premium.store') }}"
+                            class="grid gap-4"
+                            data-product-slots-form
+                            data-unit-price="{{ $unitPrice }}"
+                            data-currency-symbol="&#8358;"
+                        >
                             @csrf
                             <input type="hidden" name="idempotency_key" value="{{ $idempotencyKey }}">
 
-                            <x-buttons.primary type="submit">
+                            <div class="grid gap-2">
+                                <p class="text-2xs font-semibold text-ink-soft">Choose how many extra products you need</p>
+
+                                @foreach ($bundles as $quantity)
+                                    <label class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 transition hover:border-choice has-[:checked]:border-choice has-[:checked]:bg-[#e7f8f2]">
+                                        <span class="flex items-center gap-3">
+                                            <input
+                                                type="radio"
+                                                name="quantity"
+                                                value="{{ $quantity }}"
+                                                @checked($loop->first)
+                                                class="size-4 accent-choice"
+                                            >
+                                            <span class="text-xs font-semibold text-ink">{{ number_format($quantity) }} more products</span>
+                                        </span>
+                                        <span class="text-xs font-black text-ink">&#8358;{{ number_format(($unitPrice * $quantity) / 100) }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <div class="flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3">
+                                <span class="text-2xs text-muted">You pay</span>
+                                <span class="text-xl font-black tracking-tight text-ink" data-product-slots-amount>
+                                    &#8358;{{ number_format(($unitPrice * ($bundles[0] ?? 0)) / 100) }}
+                                </span>
+                            </div>
+
+                            <x-buttons.primary type="submit" data-product-slots-submit>
                                 <x-ui.icon name="lock" class="size-4" />
-                                Pay &#8358;{{ number_format($price / 100) }} with Paystack
+                                Pay &#8358;<span data-product-slots-submit-amount>{{ number_format(($unitPrice * ($bundles[0] ?? 0)) / 100) }}</span> with Paystack
                             </x-buttons.primary>
                         </form>
 
                         @error('premium')
+                            <p class="text-2xs text-brand-700">{{ $message }}</p>
+                        @enderror
+                        @error('quantity')
                             <p class="text-2xs text-brand-700">{{ $message }}</p>
                         @enderror
                         @error('idempotency_key')
@@ -148,9 +167,9 @@
 
             @if (session('limit_reached'))
                 <x-vendor.product-limit-modal
-                    :free-product-limit="$freeProductLimit"
-                    :premium-product-limit="$premiumProductLimit"
-                    :price="$price"
+                    :product-limit="$productLimit"
+                    :bundles="$bundles"
+                    :unit-price="$unitPrice"
                 />
             @endif
         </x-ui.container>

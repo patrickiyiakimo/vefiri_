@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreVendorPremiumPaymentRequest extends FormRequest
 {
@@ -20,6 +21,7 @@ class StoreVendorPremiumPaymentRequest extends FormRequest
     {
         return [
             'idempotency_key' => ['required', 'uuid'],
+            'quantity' => ['required', 'integer', Rule::in(config('vendor.product_slots.bundles', []))],
         ];
     }
 }

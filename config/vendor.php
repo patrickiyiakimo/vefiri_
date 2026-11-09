@@ -1,6 +1,17 @@
 <?php
 
-$premiumProductLimit = env('VENDOR_PREMIUM_PRODUCT_LIMIT');
+$productSlotPrice = (int) env('VENDOR_PRODUCT_SLOT_PRICE', 100_000);
+
+$productSlotBundles = array_values(array_unique(array_filter(
+    array_map('intval', explode(',', (string) env('VENDOR_PRODUCT_SLOT_BUNDLES', '10,20,30,40'))),
+    fn (int $quantity): bool => $quantity > 0,
+)));
+
+if ($productSlotBundles === []) {
+    $productSlotBundles = [10, 20, 30, 40];
+}
+
+sort($productSlotBundles);
 
 return [
 
@@ -9,29 +20,28 @@ return [
     | Vendor product limits
     |--------------------------------------------------------------------------
     |
-    | Free vendors can publish up to the free limit. Premium vendors use the
-    | premium limit; a null premium limit means unlimited products.
+    | Every vendor can publish the free product allowance. Vendors buy extra,
+    | permanent product slots in bundles. Their total limit is the free
+    | allowance plus the number of slots they have purchased.
     |
     */
 
     'free_product_limit' => (int) env('VENDOR_FREE_PRODUCT_LIMIT', 10),
 
-    'premium_product_limit' => is_numeric($premiumProductLimit) ? (int) $premiumProductLimit : null,
-
     /*
     |--------------------------------------------------------------------------
-    | Premium plan
+    | Product slots
     |--------------------------------------------------------------------------
     |
-    | Price is stored in the currency subunit (kobo) to match Paystack. Set the
-    | duration to zero for a non-expiring premium entitlement.
+    | Price is stored in the currency subunit (kobo) to match Paystack. Slots
+    | never expire and are sold in the bundles listed below.
     |
     */
 
-    'premium' => [
-        'price' => (int) env('VENDOR_PREMIUM_PRICE', 500_000),
-        'currency' => env('VENDOR_PREMIUM_CURRENCY', env('PAYSTACK_CURRENCY', 'NGN')),
-        'duration_days' => (int) env('VENDOR_PREMIUM_DURATION_DAYS', 30),
+    'product_slots' => [
+        'price' => $productSlotPrice,
+        'bundles' => $productSlotBundles,
+        'currency' => env('VENDOR_PRODUCT_SLOT_CURRENCY', env('PAYSTACK_CURRENCY', 'NGN')),
     ],
 
 ];

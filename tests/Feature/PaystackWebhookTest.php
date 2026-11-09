@@ -29,9 +29,10 @@ class PaystackWebhookTest extends TestCase
         config([
             'paystack.secret_key' => self::SECRET_KEY,
             'paystack.base_url' => 'https://api.paystack.co',
-            'vendor.premium.price' => 500_000,
-            'vendor.premium.currency' => 'NGN',
-            'vendor.premium.duration_days' => 30,
+            'vendor.free_product_limit' => 10,
+            'vendor.product_slots.price' => 100_000,
+            'vendor.product_slots.bundles' => [10, 20, 30, 40],
+            'vendor.product_slots.currency' => 'NGN',
             'checkout.tax_rate' => 7.5,
             'checkout.tax_after_discount' => true,
             'checkout.shipping_fee' => 0,
@@ -242,19 +243,20 @@ class PaystackWebhookTest extends TestCase
         $this->assertSame(OrderStatus::Pending, $order->fresh()->status);
     }
 
-    public function test_a_signed_premium_charge_success_webhook_upgrades_the_vendor(): void
+    public function test_a_signed_product_slots_charge_success_webhook_adds_slots_to_the_vendor(): void
     {
         $this->travelTo('2026-01-01 12:00:00');
-        $this->fakePremiumVerification('VEF_PREM_SUCCESS');
+        $this->fakePremiumVerification('VEF_SLOT_SUCCESS');
 
         $vendor = Vendor::factory()->create();
         $payment = VendorPremiumPayment::factory()->for($vendor)->create([
-            'reference' => 'VEF_PREM_SUCCESS',
-            'amount' => 500_000,
+            'reference' => 'VEF_SLOT_SUCCESS',
+            'amount' => 1_000_000,
+            'quantity' => 10,
             'currency' => 'NGN',
         ]);
 
-        $this->sendWebhook($this->payload('VEF_PREM_SUCCESS'))
+        $this->sendWebhook($this->payload('VEF_SLOT_SUCCESS'))
             ->assertOk()
             ->assertJson(['status' => 'success']);
 
@@ -265,111 +267,116 @@ class PaystackWebhookTest extends TestCase
         $this->assertNotNull($payment->paid_at);
         $this->assertSame(VendorPlan::Premium, $vendor->plan);
         $this->assertTrue($vendor->isPremium());
+        $this->assertSame(10, $vendor->product_slots);
+        $this->assertSame(20, $vendor->productLimit());
         $this->assertTrue($vendor->premium_started_at->equalTo(now()));
-        $this->assertTrue($vendor->premium_until->equalTo(now()->addDays(30)));
+        $this->assertNull($vendor->premium_until);
     }
 
-    public function test_replaying_a_premium_success_webhook_does_not_extend_the_entitlement_twice(): void
+    public function test_replaying_a_product_slots_success_webhook_does_not_add_slots_twice(): void
     {
         $this->travelTo('2026-01-01 12:00:00');
-        $this->fakePremiumVerification('VEF_PREM_REPLAY');
+        $this->fakePremiumVerification('VEF_SLOT_REPLAY');
 
         $vendor = Vendor::factory()->create();
         $payment = VendorPremiumPayment::factory()->for($vendor)->create([
-            'reference' => 'VEF_PREM_REPLAY',
-            'amount' => 500_000,
+            'reference' => 'VEF_SLOT_REPLAY',
+            'amount' => 1_000_000,
+            'quantity' => 10,
             'currency' => 'NGN',
         ]);
 
-        $this->sendWebhook($this->payload('VEF_PREM_REPLAY'))->assertOk();
-        $premiumUntil = $vendor->fresh()->premium_until;
+        $this->sendWebhook($this->payload('VEF_SLOT_REPLAY'))->assertOk();
 
         $this->travel(5)->days();
 
-        $this->sendWebhook($this->payload('VEF_PREM_REPLAY'))->assertOk();
+        $this->sendWebhook($this->payload('VEF_SLOT_REPLAY'))->assertOk();
 
-        $this->assertTrue($premiumUntil->equalTo($vendor->fresh()->premium_until));
+        $this->assertSame(10, $vendor->fresh()->product_slots);
         $this->assertSame(VendorPremiumPaymentStatus::Paid, $payment->fresh()->status);
         Http::assertSentCount(1);
     }
 
-    public function test_a_premium_webhook_with_a_mismatched_amount_does_not_upgrade_the_vendor(): void
+    public function test_a_product_slots_webhook_with_a_mismatched_amount_does_not_update_the_vendor(): void
     {
-        $this->fakePremiumVerification('VEF_PREM_MISMATCH', amount: 100);
+        $this->fakePremiumVerification('VEF_SLOT_MISMATCH', amount: 100);
 
         $vendor = Vendor::factory()->create();
         $payment = VendorPremiumPayment::factory()->for($vendor)->create([
-            'reference' => 'VEF_PREM_MISMATCH',
-            'amount' => 500_000,
+            'reference' => 'VEF_SLOT_MISMATCH',
+            'amount' => 1_000_000,
+            'quantity' => 10,
             'currency' => 'NGN',
         ]);
 
-        $this->sendWebhook($this->payload('VEF_PREM_MISMATCH'))
+        $this->sendWebhook($this->payload('VEF_SLOT_MISMATCH'))
             ->assertOk()
             ->assertJson(['status' => 'ignored']);
 
         $this->assertSame(VendorPremiumPaymentStatus::Pending, $payment->fresh()->status);
-        $this->assertFalse($vendor->fresh()->isPremium());
+        $this->assertSame(0, $vendor->fresh()->product_slots);
     }
 
-    public function test_a_premium_webhook_renews_from_the_existing_expiry_date(): void
+    public function test_a_second_product_slots_purchase_stacks_on_the_existing_slots(): void
     {
         $this->travelTo('2026-01-01 12:00:00');
-        $this->fakePremiumVerification('VEF_PREM_RENEWAL');
+        $this->fakePremiumVerification('VEF_SLOT_STACK', amount: 2_000_000);
 
-        $vendor = Vendor::factory()->premium()->create([
-            'premium_until' => now()->addDays(10),
-        ]);
+        $vendor = Vendor::factory()->withProductSlots(10)->create();
         VendorPremiumPayment::factory()->for($vendor)->create([
-            'reference' => 'VEF_PREM_RENEWAL',
-            'amount' => 500_000,
+            'reference' => 'VEF_SLOT_STACK',
+            'amount' => 2_000_000,
+            'quantity' => 20,
             'currency' => 'NGN',
         ]);
 
-        $this->sendWebhook($this->payload('VEF_PREM_RENEWAL'))->assertOk();
+        $this->sendWebhook($this->payload('VEF_SLOT_STACK'))->assertOk();
 
-        $this->assertTrue($vendor->fresh()->premium_until->equalTo(now()->addDays(40)));
+        $this->assertSame(30, $vendor->fresh()->product_slots);
+        $this->assertSame(40, $vendor->fresh()->productLimit());
     }
 
-    public function test_a_premium_webhook_with_an_invalid_signature_does_not_upgrade_the_vendor(): void
+    public function test_a_product_slots_webhook_with_an_invalid_signature_does_not_update_the_vendor(): void
     {
         $vendor = Vendor::factory()->create();
         $payment = VendorPremiumPayment::factory()->for($vendor)->create([
-            'reference' => 'VEF_PREM_INVALID',
-            'amount' => 500_000,
+            'reference' => 'VEF_SLOT_INVALID',
+            'amount' => 1_000_000,
+            'quantity' => 10,
             'currency' => 'NGN',
         ]);
 
-        $this->sendWebhook($this->payload('VEF_PREM_INVALID'), 'invalid-signature')
+        $this->sendWebhook($this->payload('VEF_SLOT_INVALID'), 'invalid-signature')
             ->assertUnauthorized();
 
         $this->assertSame(VendorPremiumPaymentStatus::Pending, $payment->fresh()->status);
-        $this->assertFalse($vendor->fresh()->isPremium());
+        $this->assertSame(0, $vendor->fresh()->product_slots);
     }
 
-    public function test_a_failed_premium_charge_marks_the_payment_as_failed(): void
+    public function test_a_failed_product_slots_charge_marks_the_payment_as_failed(): void
     {
         Http::preventStrayRequests();
 
         $vendor = Vendor::factory()->create();
         $payment = VendorPremiumPayment::factory()->for($vendor)->create([
-            'reference' => 'VEF_PREM_FAILED',
-            'amount' => 500_000,
+            'reference' => 'VEF_SLOT_FAILED',
+            'amount' => 1_000_000,
+            'quantity' => 10,
             'currency' => 'NGN',
         ]);
 
-        $this->sendWebhook($this->payload('VEF_PREM_FAILED', 'charge.failed'))
+        $this->sendWebhook($this->payload('VEF_SLOT_FAILED', 'charge.failed'))
             ->assertOk()
             ->assertJson(['status' => 'success']);
 
         $this->assertSame(VendorPremiumPaymentStatus::Failed, $payment->fresh()->status);
         $this->assertNull($payment->fresh()->paid_at);
-        $this->assertFalse($vendor->fresh()->isPremium());
+        $this->assertSame(0, $vendor->fresh()->product_slots);
     }
 
     private function fakePremiumVerification(
         string $reference,
-        int $amount = 500_000,
+        int $amount = 1_000_000,
         string $currency = 'NGN',
     ): void {
         Http::preventStrayRequests();

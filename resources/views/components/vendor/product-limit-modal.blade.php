@@ -1,7 +1,7 @@
 @props([
-    'freeProductLimit' => 10,
-    'premiumProductLimit' => null,
-    'price' => 0,
+    'productLimit' => 10,
+    'bundles' => [],
+    'unitPrice' => 0,
 ])
 
 <div
@@ -26,7 +26,7 @@
                     <div>
                         <p class="text-[10px] font-bold tracking-[0.6px] text-[#8a5a00] uppercase">Product limit reached</p>
                         <h2 id="product-limit-title" class="mt-0.5 text-base font-black tracking-tight text-ink">
-                            You've used all {{ number_format($freeProductLimit) }} product slots
+                            You've used all {{ number_format($productLimit) }} product slots
                         </h2>
                     </div>
                 </div>
@@ -43,31 +43,30 @@
 
             <div class="px-5 py-5">
                 <p class="text-xs leading-5 text-muted">
-                    Your Free plan allows up to {{ number_format($freeProductLimit) }} products.
-                    Upgrade to Premium to keep uploading without deleting your existing listings.
+                    Your current limit allows up to {{ number_format($productLimit) }} products. Buy more product slots to keep uploading without deleting your existing listings.
                 </p>
 
                 <ul class="mt-4 grid gap-2 rounded-2xl bg-surface px-4 py-3 text-xs text-ink-soft">
                     <li class="flex items-start gap-2">
                         <x-ui.icon name="badge-check" class="mt-0.5 size-3.5 shrink-0 text-choice-dark" />
                         <span>
-                            {{ $premiumProductLimit === null ? 'Upload unlimited products' : 'Upload up to '.number_format((int) $premiumProductLimit).' products' }}
+                            Add {{ collect($bundles)->map(fn ($quantity) => number_format((int) $quantity))->implode(', ') }} products from &#8358;{{ number_format($unitPrice / 100) }} each
                         </span>
                     </li>
                     <li class="flex items-start gap-2">
                         <x-ui.icon name="badge-check" class="mt-0.5 size-3.5 shrink-0 text-choice-dark" />
-                        <span>Your current products stay live</span>
+                        <span>Your purchased slots never expire</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <x-ui.icon name="badge-check" class="mt-0.5 size-3.5 shrink-0 text-choice-dark" />
-                        <span>Upgraded automatically after Paystack confirms payment</span>
+                        <span>Your current products stay live</span>
                     </li>
                 </ul>
 
                 <div class="mt-5 grid gap-2">
                     <x-buttons.primary type="submit" form="premium-payment-form" data-limit-modal-primary>
                         <x-ui.icon name="sparkles" class="size-4" />
-                        Upgrade for &#8358;{{ number_format($price / 100) }}
+                        Buy product slots
                     </x-buttons.primary>
 
                     <x-buttons.secondary type="button" data-limit-modal-close>

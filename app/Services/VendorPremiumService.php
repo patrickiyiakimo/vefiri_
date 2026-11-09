@@ -15,10 +15,18 @@ class VendorPremiumService
 {
     public function __construct(private readonly PaystackPaymentService $payments) {}
 
-    public function initialize(Vendor $vendor, string $idempotencyKey): VendorPremiumPayment
+    public function initialize(Vendor $vendor, string $idempotencyKey, int $quantity): VendorPremiumPayment
     {
+        if ($quantity <= 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Choose how many extra products you want to buy.',
+            ]);
+        }
+
+        $amount = $quantity * (int) config('vendor.product_slots.price');
+
         try {
-            return DB::transaction(function () use ($vendor, $idempotencyKey): VendorPremiumPayment {
+            return DB::transaction(function () use ($vendor, $idempotencyKey, $quantity, $amount): VendorPremiumPayment {
                 $existing = VendorPremiumPayment::query()
                     ->where('idempotency_key', $idempotencyKey)
                     ->lockForUpdate()
@@ -31,9 +39,10 @@ class VendorPremiumService
                 }
 
                 $payment = $vendor->premiumPayments()->create([
-                    'reference' => 'VEF_PREM_'.Str::ulid()->toBase32(),
-                    'amount' => (int) config('vendor.premium.price'),
-                    'currency' => (string) config('vendor.premium.currency', 'NGN'),
+                    'reference' => 'VEF_SLOT_'.Str::ulid()->toBase32(),
+                    'amount' => $amount,
+                    'quantity' => $quantity,
+                    'currency' => (string) config('vendor.product_slots.currency', 'NGN'),
                     'status' => VendorPremiumPaymentStatus::Pending,
                     'idempotency_key' => $idempotencyKey,
                 ]);
@@ -116,17 +125,6 @@ class VendorPremiumService
             }
 
             $activatedAt = now();
-            $durationDays = (int) config('vendor.premium.duration_days', 30);
-            $wasPremium = $vendor->isPremium();
-            $premiumUntil = null;
-
-            if ($durationDays > 0) {
-                $base = $wasPremium && $vendor->premium_until !== null
-                    ? $vendor->premium_until
-                    : $activatedAt;
-
-                $premiumUntil = $base->copy()->addDays($durationDays);
-            }
 
             $lockedPayment->update([
                 'status' => VendorPremiumPaymentStatus::Paid,
@@ -135,10 +133,9 @@ class VendorPremiumService
 
             $vendor->update([
                 'plan' => VendorPlan::Premium,
-                'premium_started_at' => $wasPremium && $vendor->premium_started_at !== null
-                    ? $vendor->premium_started_at
-                    : $activatedAt,
-                'premium_until' => $premiumUntil,
+                'premium_started_at' => $vendor->premium_started_at ?? $activatedAt,
+                'premium_until' => null,
+                'product_slots' => $vendor->product_slots + (int) $lockedPayment->quantity,
             ]);
 
             return true;

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'vendor_id',
     'reference',
     'amount',
+    'quantity',
     'currency',
     'status',
     'idempotency_key',
@@ -29,6 +30,7 @@ class VendorPremiumPayment extends Model
     {
         return [
             'amount' => 'integer',
+            'quantity' => 'integer',
             'status' => VendorPremiumPaymentStatus::class,
             'metadata' => 'array',
             'paid_at' => 'datetime',
