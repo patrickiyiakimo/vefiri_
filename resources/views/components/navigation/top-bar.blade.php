@@ -33,10 +33,10 @@
                 </a>
             @endif
             <a href="{{ route('home') }}" class="hidden transition hover:text-ink sm:inline">Help Center</a>
-            <a href="{{ route('home') }}" class="hidden items-center gap-1 transition hover:text-ink lg:flex">
+            <!-- <a href="{{ route('home') }}" class="hidden items-center gap-1 transition hover:text-ink lg:flex">
                 <x-ui.icon name="download" class="size-3.5" />
                 Download the app
-            </a>
+            </a> -->
             <button
                 type="button"
                 data-toast="Currency is set to Nigerian Naira (NGN)."
