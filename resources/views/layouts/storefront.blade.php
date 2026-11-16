@@ -68,7 +68,7 @@
         role="status"
         aria-live="polite"
         aria-atomic="false"
-        class="pointer-events-none fixed inset-x-4 bottom-4 z-[100] flex flex-col items-end gap-2 sm:left-auto sm:w-96"
+        class="pointer-events-none fixed inset-x-4 top-20 z-[100] flex flex-col items-end gap-2 sm:left-auto sm:w-96"
     ></div>
 
     <button
