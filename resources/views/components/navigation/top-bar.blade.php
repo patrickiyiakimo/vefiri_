@@ -49,3 +49,6 @@
         </div>
     </x-ui.container>
 </div>
+
+
+<!-- Can you add a growth graph in the admin dashboard. The dashboard should indicate the chart of growth of the platform based on the money made, loss, etc. I want the dashboard to show the progression of the platform -->
