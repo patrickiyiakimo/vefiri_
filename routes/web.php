@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\VendorApplicationController as AdminVendorApplica
 use App\Http\Controllers\Admin\VendorController as AdminVendorController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\FavouriteController;
 use App\Http\Controllers\HomeController;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
+Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/vendors', [VendorController::class, 'index'])->name('vendors.index');
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('pages.privacy');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ProvidesStorefrontData;
 use App\Services\ProductCatalog;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -32,6 +33,7 @@ class ProductController extends Controller
             ...$this->sharedData(),
             'product' => $item,
             'category' => $category,
+            'categoryUrl' => route('categories.show', Str::slug($category)),
             'relatedProducts' => $relatedProducts,
         ]);
     }

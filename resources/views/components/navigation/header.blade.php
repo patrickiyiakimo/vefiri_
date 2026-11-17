@@ -1,7 +1,8 @@
 @props([
-    'searchCategories' => [],
+    'searchCategoryLinks' => [],
     'searchSuggestions' => [],
     'searchValue' => '',
+    'selectedCategory' => 'All categories',
 ])
 
 <header class="sticky top-0 z-40 border-b border-line bg-white/95 shadow-[0_1px_0_rgba(0,0,0,0.02)] backdrop-blur-md">
@@ -19,14 +20,14 @@
             <x-ui.logo class="shrink-0" />
 
             <div class="hidden min-w-0 flex-1 md:block">
-                <x-inputs.search
-                    id="desktop-search"
-                    :categories="$searchCategories"
-                    :suggestions="$searchSuggestions"
-                    :value="$searchValue"
-                    :selected-category="request('category', 'All categories')"
-                    class="mx-auto max-w-[860px]"
-                />
+            <x-inputs.search
+                id="desktop-search"
+                :category-links="$searchCategoryLinks"
+                :suggestions="$searchSuggestions"
+                :value="$searchValue"
+                :selected-category="$selectedCategory"
+                class="mx-auto max-w-[860px]"
+            />
             </div>
 
             <div class="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1.5">
@@ -164,10 +165,10 @@
         <div class="mt-2.5 md:hidden">
             <x-inputs.search
                 id="mobile-search"
-                :categories="$searchCategories"
+                :category-links="$searchCategoryLinks"
                 :suggestions="$searchSuggestions"
                 :value="$searchValue"
-                :selected-category="request('category', 'All categories')"
+                :selected-category="$selectedCategory"
             />
         </div>
     </x-ui.container>

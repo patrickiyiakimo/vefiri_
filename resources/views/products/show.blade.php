@@ -9,7 +9,7 @@
             <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 overflow-hidden text-2xs text-muted">
                 <a href="{{ route('home') }}" class="shrink-0 transition hover:text-ink">Home</a>
                 <x-ui.icon name="chevron-right" class="size-3 shrink-0" />
-                <a href="{{ route('search', ['category' => $category]) }}" class="shrink-0 transition hover:text-ink">{{ $category }}</a>
+                <a href="{{ $categoryUrl }}" class="shrink-0 transition hover:text-ink">{{ $category }}</a>
                 <x-ui.icon name="chevron-right" class="size-3 shrink-0" />
                 <span class="truncate text-ink-soft">{{ $product['title'] }}</span>
             </nav>
@@ -137,7 +137,7 @@
                         </p>
                         <p class="flex items-center justify-between gap-3">
                             <span class="text-muted">Category</span>
-                            <a href="{{ route('search', ['category' => $category]) }}" class="font-semibold text-brand-600 transition hover:text-brand-700">{{ $category }}</a>
+                            <a href="{{ $categoryUrl }}" class="font-semibold text-brand-600 transition hover:text-brand-700">{{ $category }}</a>
                         </p>
                         <p class="flex items-center justify-between gap-3">
                             <span class="text-muted">Delivery</span>
@@ -169,7 +169,7 @@
                             <h2 id="related-products-heading" class="text-xl font-black tracking-tight text-ink">More products for sale</h2>
                             <p class="mt-1 text-xs text-muted">Explore more deals from {{ $category }}.</p>
                         </div>
-                        <a href="{{ route('search', ['category' => $category]) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 transition hover:text-brand-700">
+                        <a href="{{ $categoryUrl }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 transition hover:text-brand-700">
                             Browse all {{ $category }}
                             <x-ui.icon name="arrow-right" class="size-3.5" />
                         </a>

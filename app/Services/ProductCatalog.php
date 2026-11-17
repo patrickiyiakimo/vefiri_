@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 final class ProductCatalog
 {
@@ -99,6 +100,12 @@ final class ProductCatalog
             'toys', 'baby' => 'Toys & Games',
             default => 'All categories',
         };
+    }
+
+    public function categoryBySlug(string $slug): ?string
+    {
+        return collect($this->categories())
+            ->first(fn (string $category): bool => Str::slug($category) === $slug);
     }
 
     /**

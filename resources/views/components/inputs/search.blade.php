@@ -1,5 +1,5 @@
 @props([
-    'categories' => [],
+    'categoryLinks' => [],
     'suggestions' => [],
     'value' => '',
     'selectedCategory' => 'All categories',
@@ -23,10 +23,15 @@
         <select
             id="{{ $categoryId }}"
             name="category"
+            data-search-category-select
             class="hidden h-full max-w-[152px] shrink-0 cursor-pointer border-r border-line bg-white py-0 pr-7 pl-4 text-xs font-medium text-ink-soft outline-none md:block"
         >
-            @foreach ($categories as $category)
-                <option value="{{ $category }}" @selected($selectedCategory === $category)>{{ $category }}</option>
+            @foreach ($categoryLinks as $link)
+                <option
+                    value="{{ $link['label'] }}"
+                    data-url="{{ $link['url'] }}"
+                    @selected($selectedCategory === $link['label'])
+                >{{ $link['label'] }}</option>
             @endforeach
         </select>
 
@@ -65,26 +70,50 @@
 
     <div
         data-search-panel
-        class="absolute inset-x-0 top-[calc(100%+8px)] z-50 hidden overflow-hidden rounded-2xl border border-line bg-white p-4 shadow-float"
+        class="absolute inset-x-0 top-[calc(100%+8px)] z-50 hidden max-h-[70vh] overflow-y-auto rounded-2xl border border-line bg-white p-4 shadow-float"
     >
         <div class="flex items-center justify-between gap-3">
             <p class="flex items-center gap-1.5 text-xs font-semibold text-ink">
-                <x-ui.icon name="flame" class="size-3.5 text-brand-600" />
-                Trending searches
+                <x-ui.icon name="grid" class="size-3.5 text-brand-600" />
+                Browse categories
             </p>
-            <span class="text-2xs text-muted">Updated today</span>
         </div>
 
         <div class="mt-3 flex flex-wrap gap-2">
-            @foreach ($suggestions as $suggestion)
-                <button
-                    type="button"
-                    data-search-suggestion="{{ $suggestion }}"
-                    class="rounded-full bg-surface px-3 py-1.5 text-xs text-ink-soft transition hover:bg-brand-50 hover:text-brand-700"
-                >
-                    {{ $suggestion }}
-                </button>
+            @foreach ($categoryLinks as $link)
+                @if ($link['label'] !== 'All categories')
+                    <a
+                        href="{{ $link['url'] }}"
+                        data-search-category-link
+                        data-search-suggestion="{{ $link['label'] }}"
+                        class="rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 transition hover:bg-brand-100"
+                    >
+                        {{ $link['label'] }}
+                    </a>
+                @endif
             @endforeach
+        </div>
+
+        <div class="mt-4 border-t border-line pt-4">
+            <div class="flex items-center justify-between gap-3">
+                <p class="flex items-center gap-1.5 text-xs font-semibold text-ink">
+                    <x-ui.icon name="flame" class="size-3.5 text-brand-600" />
+                    Trending searches
+                </p>
+                <span class="text-2xs text-muted">Updated today</span>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+                @foreach ($suggestions as $suggestion)
+                    <button
+                        type="button"
+                        data-search-suggestion="{{ $suggestion }}"
+                        class="rounded-full bg-surface px-3 py-1.5 text-xs text-ink-soft transition hover:bg-brand-50 hover:text-brand-700"
+                    >
+                        {{ $suggestion }}
+                    </button>
+                @endforeach
+            </div>
         </div>
     </div>
 </form>

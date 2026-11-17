@@ -30,7 +30,8 @@ class ProductPageTest extends TestCase
         $response->assertOk()
             ->assertViewHas('category', "Men's Fashion")
             ->assertViewHas('relatedProducts', fn (array $relatedProducts): bool => collect($relatedProducts)->pluck('id')->all() === ['watch'])
-            ->assertSee("Browse all Men's Fashion");
+            ->assertSee("Browse all Men's Fashion")
+            ->assertSee(route('categories.show', 'mens-fashion'), false);
     }
 
     public function test_related_products_section_is_hidden_when_no_other_products_share_the_category(): void

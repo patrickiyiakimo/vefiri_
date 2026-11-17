@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Concerns;
 
+use Illuminate\Support\Str;
+
 trait ProvidesStorefrontData
 {
     private function sharedData(): array
@@ -10,6 +12,7 @@ trait ProvidesStorefrontData
             'menuCategories' => $this->menuCategories(),
             'navLinks' => $this->navLinks(),
             'searchCategories' => $this->searchCategories(),
+            'searchCategoryLinks' => $this->searchCategoryLinks(),
             'searchSuggestions' => $this->searchSuggestions(),
             'footerColumns' => $this->footerColumns(),
             'paymentMethods' => ['Visa', 'Mastercard', 'Verve', 'Paystack', 'Flutterwave', 'Bank Transfer'],
@@ -113,6 +116,22 @@ trait ProvidesStorefrontData
             'Tools',
             'Automobiles',
         ];
+    }
+
+    /**
+     * @return array<int, array{label: string, url: string}>
+     */
+    private function searchCategoryLinks(): array
+    {
+        return collect($this->searchCategories())
+            ->map(fn (string $category): array => [
+                'label' => $category,
+                'url' => $category === 'All categories'
+                    ? route('search')
+                    : route('categories.show', Str::slug($category)),
+            ])
+            ->values()
+            ->all();
     }
 
     /**
