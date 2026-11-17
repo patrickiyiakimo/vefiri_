@@ -1,11 +1,12 @@
 @props([
     'label',
     'image',
+    'url',
     'icon' => null,
 ])
 
 <a
-    href="{{ route('home') }}"
+    href="{{ $url }}"
     {{ $attributes->merge(['class' => 'group flex w-[72px] shrink-0 flex-col items-center gap-2 text-center sm:w-[80px]']) }}
 >
     <span class="relative flex size-14 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-black/5 transition group-hover:-translate-y-0.5 group-hover:ring-2 group-hover:ring-brand-400 sm:size-16">

@@ -25,7 +25,7 @@
                 <div class="grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-3 xl:grid-cols-5">
                     @foreach ($menuCategories as $category)
                         <section>
-                            <a href="{{ route('home') }}" class="flex items-center gap-2 text-xs font-bold text-ink transition hover:text-brand-600">
+                            <a href="{{ $category['url'] }}" class="flex items-center gap-2 text-xs font-bold text-ink transition hover:text-brand-600">
                                 <span class="flex size-7 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                                     <x-ui.icon :name="$category['icon']" class="size-3.5" />
                                 </span>
@@ -34,7 +34,7 @@
                             <ul class="mt-2 space-y-1.5 pl-9">
                                 @foreach ($category['children'] as $child)
                                     <li>
-                                        <a href="{{ route('home') }}" class="text-2xs text-muted transition hover:text-brand-600">
+                                        <a href="{{ $category['url'] }}" class="text-2xs text-muted transition hover:text-brand-600">
                                             {{ $child }}
                                         </a>
                                     </li>
@@ -46,7 +46,7 @@
 
                 <div class="mt-5 flex items-center justify-between border-t border-line pt-4">
                     <p class="text-2xs text-muted">Millions of products from trusted sellers worldwide.</p>
-                    <a href="{{ route('home') }}" class="group inline-flex items-center gap-1 text-xs font-semibold text-brand-600">
+                    <a href="{{ route('search') }}" class="group inline-flex items-center gap-1 text-xs font-semibold text-brand-600">
                         View all categories
                         <x-ui.icon name="arrow-right" class="size-3.5 transition group-hover:translate-x-0.5" />
                     </a>
