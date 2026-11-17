@@ -23,7 +23,7 @@ class ProductController extends Controller
 
         $relatedProducts = collect($this->catalog->all())
             ->except($product)
-            ->sortBy(fn (array $candidate): int => $this->catalog->category($candidate['id']) === $category ? 0 : 1)
+            ->filter(fn (array $candidate): bool => $this->catalog->category($candidate['id']) === $category)
             ->take(18)
             ->values()
             ->all();

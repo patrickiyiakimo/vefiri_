@@ -160,39 +160,41 @@
         </section>
     @endif
 
-    <section class="pt-5 pb-2" aria-labelledby="related-products-heading">
-        <x-ui.container>
-            <div class="rounded-2xl border border-black/[0.03] bg-white px-3 py-4 shadow-card sm:px-5 sm:py-5" data-load-more-scope>
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <h2 id="related-products-heading" class="text-xl font-black tracking-tight text-ink">More products for sale</h2>
-                        <p class="mt-1 text-xs text-muted">Explore more deals from {{ $category }} and other popular categories.</p>
+    @if ($relatedProducts)
+        <section class="pt-5 pb-2" aria-labelledby="related-products-heading">
+            <x-ui.container>
+                <div class="rounded-2xl border border-black/[0.03] bg-white px-3 py-4 shadow-card sm:px-5 sm:py-5" data-load-more-scope>
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h2 id="related-products-heading" class="text-xl font-black tracking-tight text-ink">More products for sale</h2>
+                            <p class="mt-1 text-xs text-muted">Explore more deals from {{ $category }}.</p>
+                        </div>
+                        <a href="{{ route('search', ['category' => $category]) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 transition hover:text-brand-700">
+                            Browse all {{ $category }}
+                            <x-ui.icon name="arrow-right" class="size-3.5" />
+                        </a>
                     </div>
-                    <a href="{{ route('search') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 transition hover:text-brand-700">
-                        Browse all products
-                        <x-ui.icon name="arrow-right" class="size-3.5" />
-                    </a>
-                </div>
 
-                <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-6">
-                    @foreach ($relatedProducts as $related)
-                        <x-cards.product
-                            :product="$related"
-                            data-more-item
-                            :class="$loop->index >= 12 ? 'hidden' : null"
-                        />
-                    @endforeach
-                </div>
-
-                @if (count($relatedProducts) > 12)
-                    <div data-load-more-controls class="mt-5 flex justify-center">
-                        <x-buttons.secondary type="button" data-load-more class="px-7">
-                            Show more products
-                            <x-ui.icon name="chevron-down" class="size-4" />
-                        </x-buttons.secondary>
+                    <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-6">
+                        @foreach ($relatedProducts as $related)
+                            <x-cards.product
+                                :product="$related"
+                                data-more-item
+                                :class="$loop->index >= 12 ? 'hidden' : null"
+                            />
+                        @endforeach
                     </div>
-                @endif
-            </div>
-        </x-ui.container>
-    </section>
+
+                    @if (count($relatedProducts) > 12)
+                        <div data-load-more-controls class="mt-5 flex justify-center">
+                            <x-buttons.secondary type="button" data-load-more class="px-7">
+                                Show more products
+                                <x-ui.icon name="chevron-down" class="size-4" />
+                            </x-buttons.secondary>
+                        </div>
+                    @endif
+                </div>
+            </x-ui.container>
+        </section>
+    @endif
 @endsection
