@@ -14,7 +14,7 @@
                 <span class="truncate text-ink-soft">{{ $product['title'] }}</span>
             </nav>
 
-            <div class="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div class="mt-3 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
                 <div class="rounded-2xl border border-black/[0.04] bg-white p-3 shadow-card sm:p-5">
                     <div class="relative aspect-square overflow-hidden rounded-xl bg-[#f6f6f6]">
                         <img
