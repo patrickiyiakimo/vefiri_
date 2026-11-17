@@ -6,10 +6,16 @@ use Illuminate\Support\Str;
 
 trait ProvidesStorefrontData
 {
+    private const CATEGORY_ALIASES = [
+        'tools & home improvement' => 'Tools',
+    ];
+
     private function sharedData(): array
     {
         return [
-            'menuCategories' => $this->menuCategories(),
+            'menuCategories' => collect($this->menuCategories())
+                ->map(fn (array $category): array => [...$category, 'url' => $this->categoryUrl($category['label'])])
+                ->all(),
             'navLinks' => $this->navLinks(),
             'searchCategories' => $this->searchCategories(),
             'searchCategoryLinks' => $this->searchCategoryLinks(),
@@ -118,6 +124,21 @@ trait ProvidesStorefrontData
         ];
     }
 
+    private function categoryUrl(string $label): string
+    {
+        if ($label === 'All categories') {
+            return route('search');
+        }
+
+        $canonicalCategory = in_array($label, $this->searchCategories(), true)
+            ? $label
+            : (self::CATEGORY_ALIASES[mb_strtolower($label)] ?? null);
+
+        return $canonicalCategory === null
+            ? route('search')
+            : route('categories.show', Str::slug($canonicalCategory));
+    }
+
     /**
      * @return array<int, array{label: string, url: string}>
      */
@@ -126,9 +147,7 @@ trait ProvidesStorefrontData
         return collect($this->searchCategories())
             ->map(fn (string $category): array => [
                 'label' => $category,
-                'url' => $category === 'All categories'
-                    ? route('search')
-                    : route('categories.show', Str::slug($category)),
+                'url' => $this->categoryUrl($category),
             ])
             ->values()
             ->all();

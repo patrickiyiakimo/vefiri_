@@ -12,7 +12,7 @@
                 <nav aria-label="Product categories" class="mt-1">
                     @foreach ($menuCategories as $category)
                         <a
-                            href="{{ route('home') }}"
+                            href="{{ $category['url'] }}"
                             class="group flex h-8 items-center gap-2 rounded-lg px-2.5 text-xs text-ink-soft transition hover:bg-brand-50 hover:text-brand-700"
                         >
                             <x-ui.icon :name="$category['icon']" class="size-4 shrink-0 text-muted transition group-hover:text-brand-500" />
@@ -23,7 +23,7 @@
                 </nav>
 
                 <a
-                    href="{{ route('home') }}"
+                    href="{{ route('search') }}"
                     class="mt-1 flex h-8 items-center gap-1 px-2.5 text-xs font-bold text-brand-600 transition hover:text-brand-700"
                 >
                     See all categories

@@ -142,23 +142,23 @@ class HomeController extends Controller
     }
 
     /**
-     * @return array<int, array{label: string, icon: string, image: string}>
+     * @return array<int, array{label: string, icon: string, image: string, url: string}>
      */
     private function quickCategories(): array
     {
         return [
-            ['label' => 'Women', 'icon' => 'hanger', 'image' => 'images/products/women-fashion.jpg'],
-            ['label' => 'Men', 'icon' => 'shirt', 'image' => 'images/products/men-fashion.jpg'],
-            ['label' => 'Phones', 'icon' => 'smartphone', 'image' => 'images/products/smartphone.jpg'],
-            ['label' => 'Electronics', 'icon' => 'headphones', 'image' => 'images/products/headphones.webp'],
-            ['label' => 'Home', 'icon' => 'home', 'image' => 'images/products/chair.jpg'],
-            ['label' => 'Beauty', 'icon' => 'sparkles', 'image' => 'images/products/cosmetics.jpg'],
-            ['label' => 'Sports', 'icon' => 'trophy', 'image' => 'images/products/sneakers.jpg'],
-            ['label' => 'Toys', 'icon' => 'puzzle', 'image' => 'images/products/toys.jpg'],
-            ['label' => 'Pets', 'icon' => 'paw', 'image' => 'images/products/pets.jpg'],
-            ['label' => 'Watches', 'icon' => 'watch', 'image' => 'images/products/watch.jpg'],
-            ['label' => 'Bags', 'icon' => 'bag', 'image' => 'images/products/bag.jpg'],
-            ['label' => 'Tools', 'icon' => 'wrench', 'image' => 'images/products/tools.jpg'],
+            ['label' => 'Women', 'icon' => 'hanger', 'image' => 'images/products/women-fashion.jpg', 'url' => $this->categoryUrl("Women's Fashion")],
+            ['label' => 'Men', 'icon' => 'shirt', 'image' => 'images/products/men-fashion.jpg', 'url' => $this->categoryUrl("Men's Fashion")],
+            ['label' => 'Phones', 'icon' => 'smartphone', 'image' => 'images/products/smartphone.jpg', 'url' => $this->categoryUrl('Phones & Accessories')],
+            ['label' => 'Electronics', 'icon' => 'headphones', 'image' => 'images/products/headphones.webp', 'url' => $this->categoryUrl('Consumer Electronics')],
+            ['label' => 'Home', 'icon' => 'home', 'image' => 'images/products/chair.jpg', 'url' => $this->categoryUrl('Home & Garden')],
+            ['label' => 'Beauty', 'icon' => 'sparkles', 'image' => 'images/products/cosmetics.jpg', 'url' => $this->categoryUrl('Beauty & Health')],
+            ['label' => 'Sports', 'icon' => 'trophy', 'image' => 'images/products/sneakers.jpg', 'url' => $this->categoryUrl('Sports & Outdoors')],
+            ['label' => 'Toys', 'icon' => 'puzzle', 'image' => 'images/products/toys.jpg', 'url' => $this->categoryUrl('Toys & Games')],
+            ['label' => 'Pets', 'icon' => 'paw', 'image' => 'images/products/pets.jpg', 'url' => $this->categoryUrl('Home & Garden')],
+            ['label' => 'Watches', 'icon' => 'watch', 'image' => 'images/products/watch.jpg', 'url' => $this->categoryUrl("Men's Fashion")],
+            ['label' => 'Bags', 'icon' => 'bag', 'image' => 'images/products/bag.jpg', 'url' => $this->categoryUrl("Women's Fashion")],
+            ['label' => 'Tools', 'icon' => 'wrench', 'image' => 'images/products/tools.jpg', 'url' => $this->categoryUrl('Tools')],
         ];
     }
 

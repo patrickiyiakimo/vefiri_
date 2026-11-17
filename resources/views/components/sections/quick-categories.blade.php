@@ -7,7 +7,7 @@
         <div class="rounded-2xl border border-black/[0.03] bg-white px-3 py-3 shadow-card sm:px-5">
             <div class="flex items-center justify-between gap-3">
                 <h2 id="quick-categories-heading" class="text-sm font-bold text-ink">Top categories</h2>
-                <a href="{{ route('home') }}" class="inline-flex items-center gap-1 text-2xs font-semibold text-muted transition hover:text-brand-600">
+                <a href="{{ route('search') }}" class="inline-flex items-center gap-1 text-2xs font-semibold text-muted transition hover:text-brand-600">
                     View all
                     <x-ui.icon name="chevron-right" class="size-3" />
                 </a>
@@ -18,6 +18,7 @@
                     <x-cards.quick-category
                         :label="$category['label']"
                         :image="$category['image']"
+                        :url="$category['url']"
                         :icon="$category['icon']"
                     />
                 @endforeach

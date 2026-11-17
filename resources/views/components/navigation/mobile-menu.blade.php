@@ -92,12 +92,12 @@
             <nav aria-label="Categories" class="mt-5">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xs font-bold">Shop by category</h2>
-                    <a href="{{ route('home') }}" class="text-2xs font-semibold text-brand-600">View all</a>
+                    <a href="{{ route('search') }}" class="text-2xs font-semibold text-brand-600">View all</a>
                 </div>
 
                 <div class="mt-2 divide-y divide-line">
                     @foreach ($menuCategories as $category)
-                        <a href="{{ route('home') }}" class="flex items-center gap-3 py-3">
+                        <a href="{{ $category['url'] }}" class="flex items-center gap-3 py-3">
                             <span class="flex size-8 items-center justify-center rounded-lg bg-surface text-ink-soft">
                                 <x-ui.icon :name="$category['icon']" class="size-4" />
                             </span>
