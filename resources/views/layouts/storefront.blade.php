@@ -41,9 +41,10 @@
 
     <x-navigation.top-bar />
     <x-navigation.header
-        :search-categories="$searchCategories"
+        :search-category-links="$searchCategoryLinks"
         :search-suggestions="$searchSuggestions"
         :search-value="request('q', '')"
+        :selected-category="$selectedCategory ?? request('category', 'All categories')"
     />
     <x-navigation.category-nav
         :nav-links="$navLinks"
