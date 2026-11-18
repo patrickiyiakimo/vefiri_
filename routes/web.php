@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\ProductPhotoInquiryController as AdminProductPhotoInquiryController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\VendorApplicationController as AdminVendorApplicationController;
 use App\Http\Controllers\Admin\VendorController as AdminVendorController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaystackWebhookController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductPhotoInquiryController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Controllers\Vendor\PremiumController as VendorPremiumController;
 use App\Http\Controllers\Vendor\ProductController as VendorProductController;
@@ -30,6 +32,7 @@ Route::get('/vendors', [VendorController::class, 'index'])->name('vendors.index'
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('pages.privacy');
 Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('pages.terms');
 Route::get('/returns-and-refunds', [PageController::class, 'returns'])->name('pages.returns');
+Route::post('/product-photo-inquiries', [ProductPhotoInquiryController::class, 'store'])->name('product-photo-inquiries.store');
 
 Route::post('/webhooks/paystack', PaystackWebhookController::class)
     ->middleware('paystack.signature')
@@ -95,6 +98,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::patch('/orders/{order}/delivered', [AdminOrderController::class, 'markDelivered'])->name('orders.delivered');
+        Route::get('/product-photo-inquiries', [AdminProductPhotoInquiryController::class, 'index'])->name('product-photo-inquiries.index');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
         Route::patch('/users/{user}/reactivate', [AdminUserController::class, 'reactivate'])->name('users.reactivate');

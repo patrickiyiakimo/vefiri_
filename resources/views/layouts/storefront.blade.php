@@ -62,6 +62,7 @@
 
     <x-navigation.mobile-menu :menu-categories="$menuCategories" />
     <x-auth.modal />
+    <x-product-photo-inquiry-modal />
     <x-cart.drawer />
 
     <div

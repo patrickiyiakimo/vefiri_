@@ -50,8 +50,9 @@
             >
             <button
                 type="button"
-                aria-label="Search by image"
-                data-toast="Image search is not available in this demo."
+                aria-label="Send a product photo to Vefiri"
+                title="Send a product photo to Vefiri"
+                data-photo-inquiry-open
                 class="flex size-9 shrink-0 items-center justify-center rounded-full text-ink-soft transition hover:bg-surface hover:text-brand-600"
             >
                 <x-ui.icon name="camera" class="size-5" />

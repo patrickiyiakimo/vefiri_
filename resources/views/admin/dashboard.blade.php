@@ -20,6 +20,7 @@
 
                 <div class="flex flex-wrap gap-2">
                     <a href="{{ route('admin.orders.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Orders</a>
+                    <a href="{{ route('admin.product-photo-inquiries.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Product photos</a>
                     <a href="{{ route('admin.users.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Users</a>
                     <a href="{{ route('admin.vendors.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Vendors</a>
                     <a href="{{ route('admin.applications.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:text-ink">Vendor applications</a>
