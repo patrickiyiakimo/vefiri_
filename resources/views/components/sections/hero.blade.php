@@ -64,7 +64,7 @@
 
                                     <div class="mt-5 flex flex-wrap items-center gap-2 sm:mt-6">
                                         <x-buttons.secondary
-                                            href="{{ route('home') }}"
+                                            href="{{ $slide['url'] }}"
                                             size="lg"
                                             class="border-white bg-white text-ink hover:bg-[#fff2e8] hover:text-ink"
                                         >
@@ -202,14 +202,13 @@
                         <span class="text-3xl leading-none font-black tracking-tight text-brand-700">₦5,000</span>
                         <span class="pb-1 text-xs font-bold text-brand-800">OFF</span>
                     </div>
-                    <p class="mt-1 text-2xs text-ink-soft">On orders over ₦25,000</p>
-                    <button
-                        type="button"
-                        data-toast="Coupon NEW5 added to your account."
+                    <p class="mt-1 text-2xs text-ink-soft">Use code NEW5 at checkout</p>
+                    <a
+                        href="{{ route('checkout.show', ['coupon' => 'NEW5']) }}"
                         class="absolute right-3 bottom-3 rounded-full bg-ink px-3 py-1.5 text-[10px] font-bold text-white transition hover:bg-brand-600"
                     >
                         Collect coupon NEW5
-                    </button>
+                    </a>
                 </div>
 
                 <div class="relative flex-1 overflow-hidden rounded-2xl bg-gradient-to-br from-[#e9fbf5] via-[#d2f7e9] to-[#a9eed8] p-4">
@@ -219,7 +218,7 @@
                     <p class="mt-2 text-xl leading-tight font-black text-[#005c45]">Free shipping<br>on every order</p>
                     <p class="mt-1 text-2xs text-[#337060]">No minimum spend required</p>
                     <a
-                        href="{{ route('home') }}"
+                        href="{{ route('search', ['choice' => 1]) }}"
                         class="absolute right-3 bottom-3 inline-flex items-center gap-1 text-[10px] font-bold text-[#005c45] underline underline-offset-2"
                     >
                         Shop now

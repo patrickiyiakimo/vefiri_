@@ -37,6 +37,7 @@ class HomeController extends Controller
             'recommendationTabs' => $this->recommendationTabs($products),
             'vendorProducts' => array_values($this->catalog->vendorProducts(12)),
             'promoBanners' => $this->promoBanners(),
+            'businessUrl' => $this->businessUrl(),
             'businessStats' => [
                 ['value' => '3K+', 'label' => 'Factory-direct products'],
                 ['value' => '2K+', 'label' => 'Items ready to ship'],
@@ -102,7 +103,7 @@ class HomeController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int, array<string, mixed>>
      */
     private function heroSlides(array $products): array
     {
@@ -112,6 +113,7 @@ class HomeController extends Controller
                 'title' => '11.11 Big Sale',
                 'description' => 'Up to 70% off top picks, plus free shipping on all Choice items.',
                 'cta' => 'Shop the sale',
+                'url' => route('search'),
                 'code' => 'Code: BIG11',
                 'theme' => 'from-[#ff1744] via-[#ff4d24] to-[#ff9f00]',
                 'accent' => 'bg-[#2b1200] text-white',
@@ -122,6 +124,7 @@ class HomeController extends Controller
                 'title' => 'Choice Day',
                 'description' => 'Millions of quality finds with free shipping and buyer protection.',
                 'cta' => 'Discover Choice',
+                'url' => route('search', ['choice' => 1]),
                 'code' => 'Free shipping',
                 'theme' => 'from-[#003c2f] via-[#006f54] to-[#35c99b]',
                 'accent' => 'bg-white text-[#005c45]',
@@ -132,6 +135,7 @@ class HomeController extends Controller
                 'title' => 'Super Deals',
                 'description' => 'Save up to 80% on trending tech, home and lifestyle picks.',
                 'cta' => 'Shop SuperDeals',
+                'url' => route('home', ['#' => 'super-deals']),
                 'code' => 'While stocks last',
                 'theme' => 'from-[#24114d] via-[#5b21b6] to-[#db2777]',
                 'accent' => 'bg-[#ffd60a] text-[#2c1358]',
@@ -325,11 +329,20 @@ class HomeController extends Controller
                 'title' => 'Buy more, save more',
                 'description' => 'Volume pricing, dedicated support and tax exemptions.',
                 'cta' => 'Explore business',
-                'url' => route('register', ['type' => 'vendor']),
+                'url' => $this->businessUrl(),
                 'theme' => 'from-[#eef2ff] via-[#dbe4ff] to-[#c7d2fe]',
                 'icon' => 'briefcase',
             ],
         ];
+    }
+
+    private function businessUrl(): string
+    {
+        return match (true) {
+            auth()->user()?->isVendor() => route('vendor.dashboard'),
+            auth()->check() => route('vendors.apply'),
+            default => route('register', ['type' => 'vendor']),
+        };
     }
 
     /**

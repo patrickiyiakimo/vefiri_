@@ -13,7 +13,7 @@
 
     <x-sections.todays-deals :tabs="$dealTabs" />
 
-    <x-sections.business :stats="$businessStats" />
+    <x-sections.business :stats="$businessStats" :business-url="$businessUrl" />
 
     <x-sections.promo-banners :banners="$promoBanners" />
 
