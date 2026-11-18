@@ -26,6 +26,9 @@
                             @if ($selectedCategory !== '' && $selectedCategory !== 'All categories')
                                 in {{ $selectedCategory }}
                             @endif
+                            @if ($choiceOnly)
+                                · Vefiri Choice
+                            @endif
                         </p>
                     </div>
 
@@ -35,6 +38,16 @@
                             class="inline-flex items-center gap-1.5 self-start rounded-full bg-surface px-3 py-1.5 text-2xs font-semibold text-ink-soft transition hover:bg-brand-50 hover:text-brand-700"
                         >
                             {{ $selectedCategory }}
+                            <x-ui.icon name="close" class="size-3" />
+                        </a>
+                    @endif
+
+                    @if ($choiceOnly)
+                        <a
+                            href="{{ route('search', array_filter(['q' => $query, 'category' => $selectedCategory])) }}"
+                            class="inline-flex items-center gap-1.5 self-start rounded-full bg-surface px-3 py-1.5 text-2xs font-semibold text-ink-soft transition hover:bg-brand-50 hover:text-brand-700"
+                        >
+                            Vefiri Choice
                             <x-ui.icon name="close" class="size-3" />
                         </a>
                     @endif

@@ -24,5 +24,20 @@ class CouponSeeder extends Seeder
                 'expires_at' => null,
             ],
         );
+
+        Coupon::query()->updateOrCreate(
+            ['code' => 'NEW5'],
+            [
+                'name' => 'Save ₦5,000',
+                'type' => CouponType::Fixed,
+                'amount' => 500_000,
+                'percentage' => null,
+                'free_shipping' => false,
+                'vendor_id' => null,
+                'is_active' => true,
+                'starts_at' => null,
+                'expires_at' => null,
+            ],
+        );
     }
 }
