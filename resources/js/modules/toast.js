@@ -57,6 +57,11 @@ export function showToast(message) {
 }
 
 export function initToasts() {
+    document.querySelectorAll('[data-server-toast]').forEach((element) => {
+        showToast(element.dataset.serverToast ?? '');
+        element.remove();
+    });
+
     document.addEventListener('click', (event) => {
         const trigger = event.target.closest('[data-toast]');
 

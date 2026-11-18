@@ -67,6 +67,6 @@ class CartController extends Controller
             return new CartResource($this->cart->summary($request->user()));
         }
 
-        return redirect()->route('cart.index')->with('status', 'Item removed from your cart.');
+        return redirect()->route('cart.index')->with('toast', 'Item removed from your cart.');
     }
 }

@@ -23,12 +23,6 @@
                 <x-buttons.secondary href="{{ route('home') }}" size="sm">Continue shopping</x-buttons.secondary>
             </div>
 
-            @if (session('status'))
-                <div class="mt-4 rounded-xl bg-[#e7f8f2] px-4 py-3 text-xs font-semibold text-choice-dark">
-                    {{ session('status') }}
-                </div>
-            @endif
-
             @if (empty($cart['items']))
                 <div class="mt-4 rounded-2xl border border-black/[0.04] bg-white p-8 text-center shadow-card sm:p-12">
                     <span class="mx-auto flex size-20 items-center justify-center rounded-full bg-surface text-muted">
