@@ -2,7 +2,7 @@
     'products' => [],
 ])
 
-<section class="pt-4" aria-labelledby="super-deals-heading">
+<section id="super-deals" class="pt-4" aria-labelledby="super-deals-heading">
     <x-ui.container>
         <div class="overflow-hidden rounded-2xl border border-black/[0.03] bg-white shadow-card">
             <div class="relative overflow-hidden bg-gradient-to-r from-[#fff1e8] via-[#fff7f1] to-white px-4 py-4 sm:px-6">

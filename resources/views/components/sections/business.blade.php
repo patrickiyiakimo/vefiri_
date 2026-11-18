@@ -1,5 +1,6 @@
 @props([
     'stats' => [],
+    'businessUrl' => '#',
 ])
 
 <section class="pt-4" aria-labelledby="business-heading">
@@ -36,11 +37,11 @@
                     </div>
 
                     <div class="mt-5 flex flex-wrap items-center gap-3">
-                        <x-buttons.secondary href="{{ route('register', ['type' => 'vendor']) }}" class="border-white bg-white text-[#0e1838] hover:bg-[#ffe4d4] hover:text-[#0e1838]">
+                        <x-buttons.secondary href="{{ $businessUrl }}" class="border-white bg-white text-[#0e1838] hover:bg-[#ffe4d4] hover:text-[#0e1838]">
                             Start sourcing
                             <x-ui.icon name="arrow-right" class="size-4" />
                         </x-buttons.secondary>
-                        <a href="{{ route('register', ['type' => 'vendor']) }}" class="text-xs font-semibold text-white/80 underline decoration-white/30 underline-offset-4 transition hover:text-white">
+                        <a href="{{ $businessUrl }}" class="text-xs font-semibold text-white/80 underline decoration-white/30 underline-offset-4 transition hover:text-white">
                             Learn more
                         </a>
                     </div>
