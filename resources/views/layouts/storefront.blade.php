@@ -65,6 +65,10 @@
     <x-product-photo-inquiry-modal />
     <x-cart.drawer />
 
+    @if (session('toast'))
+        <span data-server-toast="{{ session('toast') }}" class="hidden"></span>
+    @endif
+
     <div
         data-toast-container
         role="status"

@@ -74,8 +74,22 @@ class CartPageTest extends TestCase
         $this->actingAs($user)
             ->delete(route('cart.items.destroy', 'headphones'))
             ->assertRedirect(route('cart.index'))
-            ->assertSessionHas('status');
+            ->assertSessionHas('toast', 'Item removed from your cart.')
+            ->assertSessionMissing('status');
 
         $this->assertDatabaseMissing('cart_items', ['id' => $item->id]);
+    }
+
+    public function test_flash_toast_is_rendered_for_the_javascript_notifier_instead_of_a_banner(): void
+    {
+        $user = User::factory()->create();
+        $cart = Cart::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->withSession(['toast' => 'Item removed from your cart.'])
+            ->get(route('cart.index'))
+            ->assertOk()
+            ->assertSee('data-server-toast="Item removed from your cart."', false)
+            ->assertDontSeeText('Item removed from your cart.');
     }
 }
