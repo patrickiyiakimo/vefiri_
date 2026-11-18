@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Services\ProductCatalog;
+use Database\Seeders\CouponSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
@@ -356,6 +357,26 @@ class CheckoutTest extends TestCase
             ->assertSeeText('Discount (SAVE500)')
             ->assertSeeText('20,963')
             ->assertSee('name="coupon_code" value="SAVE500"', false);
+    }
+
+    public function test_the_seeded_new_customer_coupon_applies_at_checkout(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->createVendorProduct(10_000);
+        $cart = Cart::factory()->for($user)->create();
+        CartItem::factory()->for($cart)->create([
+            'product_key' => $product->catalogKey(),
+            'quantity' => 2,
+            'unit_price' => 10_000,
+        ]);
+        $this->seed(CouponSeeder::class);
+
+        $this->actingAs($user)
+            ->get(route('checkout.show', ['coupon' => 'NEW5']))
+            ->assertOk()
+            ->assertSeeText('NEW5 applied')
+            ->assertSeeText('Discount (NEW5)')
+            ->assertSee('name="coupon_code" value="NEW5"', false);
     }
 
     public function test_the_checkout_page_shows_an_invalid_coupon_message_without_a_discount(): void

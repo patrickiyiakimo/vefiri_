@@ -34,6 +34,16 @@ class HomePageTest extends TestCase
         $response->assertSee('code.jivosite.com/widget/c8ze2HijnI', false);
     }
 
+    public function test_promo_banner_calls_to_action_link_to_working_pages(): void
+    {
+        $response = $this->get(route('home'));
+
+        $response->assertOk();
+        $response->assertSee(route('checkout.show', ['coupon' => 'NEW5']), false);
+        $response->assertSee(route('search', ['choice' => 1]), false);
+        $response->assertSee(route('register', ['type' => 'vendor']), false);
+    }
+
     public function test_the_welcome_coupon_email_field_is_prefilled_for_signed_in_users(): void
     {
         $user = User::factory()->create(['email' => 'ada@example.com']);

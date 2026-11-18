@@ -50,6 +50,7 @@ class HomeController extends Controller
     {
         $query = trim((string) $request->query('q', ''));
         $selectedCategory = trim((string) $request->query('category', ''));
+        $choiceOnly = $request->boolean('choice');
         $terms = preg_split('/\s+/', mb_strtolower($query), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         $products = collect($this->catalog->all())
@@ -57,12 +58,16 @@ class HomeController extends Controller
                 ...$product,
                 'category' => $this->catalog->category($product['id']),
             ])
-            ->filter(function (array $product) use ($terms, $selectedCategory): bool {
+            ->filter(function (array $product) use ($choiceOnly, $terms, $selectedCategory): bool {
                 $categoryMatches = $selectedCategory === ''
                     || $selectedCategory === 'All categories'
                     || $product['category'] === $selectedCategory;
 
                 if (! $categoryMatches) {
+                    return false;
+                }
+
+                if ($choiceOnly && empty($product['choice'])) {
                     return false;
                 }
 
@@ -92,6 +97,7 @@ class HomeController extends Controller
             'products' => $products,
             'query' => $query,
             'selectedCategory' => $selectedCategory,
+            'choiceOnly' => $choiceOnly,
         ]);
     }
 
@@ -291,16 +297,17 @@ class HomeController extends Controller
     }
 
     /**
-     * @return array<int, array{eyebrow: string, title: string, description: string, cta: string, theme: string, icon: string}>
+     * @return array<int, array{eyebrow: string, title: string, description: string, cta: string, url: string, theme: string, icon: string}>
      */
     private function promoBanners(): array
     {
         return [
             [
                 'eyebrow' => 'New here?',
-                'title' => 'Get ₦5,000 off your first order',
-                'description' => 'Use code NEW5 at checkout. Minimum spend â‚¦25,000.',
+                'title' => 'Get ₦5,000 off your order',
+                'description' => 'Use code NEW5 at checkout.',
                 'cta' => 'Claim coupon',
+                'url' => route('checkout.show', ['coupon' => 'NEW5']),
                 'theme' => 'from-[#fff1e8] via-[#ffe4d1] to-[#ffd0ad]',
                 'icon' => 'gift',
             ],
@@ -309,6 +316,7 @@ class HomeController extends Controller
                 'title' => 'Free shipping, every day',
                 'description' => 'Top-rated products with free delivery and easy returns.',
                 'cta' => 'Shop Choice',
+                'url' => route('search', ['choice' => 1]),
                 'theme' => 'from-[#e9fbf5] via-[#d2f7e9] to-[#a9eed8]',
                 'icon' => 'truck',
             ],
@@ -317,6 +325,7 @@ class HomeController extends Controller
                 'title' => 'Buy more, save more',
                 'description' => 'Volume pricing, dedicated support and tax exemptions.',
                 'cta' => 'Explore business',
+                'url' => route('register', ['type' => 'vendor']),
                 'theme' => 'from-[#eef2ff] via-[#dbe4ff] to-[#c7d2fe]',
                 'icon' => 'briefcase',
             ],

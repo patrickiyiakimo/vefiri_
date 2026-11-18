@@ -29,6 +29,16 @@ class SearchTest extends TestCase
         $response->assertDontSeeText('Earphone Clip Wireless Bluetooth Headphone');
     }
 
+    public function test_search_results_can_be_filtered_to_vefiri_choice_products(): void
+    {
+        $response = $this->get(route('search', ['choice' => 1]));
+
+        $response->assertOk();
+        $response->assertSeeText('Vefiri Choice');
+        $response->assertSeeText('Earphone Clip Wireless Bluetooth Headphone');
+        $response->assertDontSeeText('Classic Minimalist Quartz Watch');
+    }
+
     public function test_search_shows_an_empty_state_when_nothing_matches(): void
     {
         $response = $this->get(route('search', ['q' => 'zzzz-no-product']));

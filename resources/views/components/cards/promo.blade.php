@@ -11,7 +11,7 @@
         <h3 class="mt-1.5 text-lg leading-6 font-bold text-ink sm:text-xl">{{ $banner['title'] }}</h3>
         <p class="mt-1.5 text-xs leading-5 text-ink-soft">{{ $banner['description'] }}</p>
 
-        <x-buttons.secondary href="{{ route('home') }}" size="sm" class="mt-4 border-ink/15 bg-white/75 ring-1 ring-white/60">
+        <x-buttons.secondary href="{{ $banner['url'] }}" size="sm" class="mt-4 border-ink/15 bg-white/75 ring-1 ring-white/60">
             {{ $banner['cta'] }}
             <x-ui.icon name="arrow-right" class="size-3.5" />
         </x-buttons.secondary>
