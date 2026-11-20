@@ -70,7 +70,7 @@
         <div class="flex min-h-screen flex-col">
             <header class="flex items-center justify-between px-5 py-4 sm:px-8">
                 <div class="lg:hidden">
-                    <x-ui.logo />
+                <x-ui.logo tone="light" />
                 </div>
                 <a
                     href="{{ route('home') }}"
