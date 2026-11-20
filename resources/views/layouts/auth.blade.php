@@ -30,7 +30,7 @@
             </div>
 
             <div class="relative">
-                <x-ui.logo tone="light" />
+                <x-ui.logo />
             </div>
 
             <div class="relative my-auto max-w-lg">
