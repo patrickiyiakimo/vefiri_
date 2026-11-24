@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CloudinaryProductImages;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,6 +55,10 @@ class Product extends Model
 
     public function imageUrl(): string
     {
+        if (CloudinaryProductImages::isManagedPath($this->image_path)) {
+            return CloudinaryProductImages::deliveryUrl((string) $this->image_path);
+        }
+
         $diskName = (string) config('filesystems.product_images_disk', 'public');
         $disk = Storage::disk($diskName);
 

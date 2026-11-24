@@ -25,9 +25,18 @@
                 <x-vendor.nav :vendor="$vendor" />
             </div>
 
-            <form method="POST" action="{{ route('vendor.products.update', $product) }}" enctype="multipart/form-data" class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <form
+                method="POST"
+                action="{{ route('vendor.products.update', $product) }}"
+                data-cloudinary-product-form
+                data-cloudinary-signature-url="{{ route('vendor.product-images.signature') }}"
+                class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+            >
                 @csrf
                 @method('PATCH')
+                <input type="hidden" name="image_token" value="{{ old('image_token') }}" data-cloudinary-token>
+                <input type="hidden" name="image_version" value="{{ old('image_version') }}" data-cloudinary-version>
+                <input type="hidden" name="image_signature" value="{{ old('image_signature') }}" data-cloudinary-signature>
 
                 <section class="rounded-2xl border border-black/[0.04] bg-white shadow-card">
                     <header class="border-b border-line px-5 py-4">
@@ -152,6 +161,7 @@
                                 onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                                 width="128"
                                 height="128"
+                                data-cloudinary-preview
                                 class="size-32 rounded-xl object-cover"
                             >
 
@@ -159,13 +169,15 @@
                                 <span class="text-xs font-semibold text-ink">Replace image</span>
                                 <input
                                     type="file"
-                                    name="image"
                                     accept="image/jpeg,image/png,image/webp"
+                                    data-cloudinary-file
                                     class="block w-full text-xs text-muted file:mr-3 file:h-9 file:rounded-full file:border-0 file:bg-surface file:px-4 file:text-xs file:font-semibold file:text-ink hover:file:bg-[#f0f0f0]"
                                 >
-                                @error('image')
+                                <span class="text-2xs text-muted">Leave empty to keep the current image. New images upload directly to our CDN.</span>
+                                @error('image_token')
                                     <span class="text-2xs text-brand-700">{{ $message }}</span>
                                 @enderror
+                                <span data-cloudinary-status aria-live="polite" class="hidden text-2xs font-semibold"></span>
                             </label>
 
                             <label class="flex items-center gap-2 text-xs text-ink">

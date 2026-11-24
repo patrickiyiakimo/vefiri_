@@ -2,14 +2,24 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\VerifiesCloudinaryUploads;
 use App\Models\Product;
+use App\Services\CloudinaryProductImages;
 use App\Services\ProductCatalog;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreVendorProductRequest extends FormRequest
 {
+    use VerifiesCloudinaryUploads;
+
+    public function __construct(CloudinaryProductImages $cloudinaryImages)
+    {
+        $this->cloudinaryImages = $cloudinaryImages;
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', Product::class) ?? false;
@@ -27,8 +37,17 @@ class StoreVendorProductRequest extends FormRequest
             'price' => ['required', 'integer', 'min:100', 'max:1000000000'],
             'compare_price' => ['nullable', 'integer', 'gt:price', 'max:1000000000'],
             'stock' => ['required', 'integer', 'min:0', 'max:1000000'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'image_token' => ['required', 'string', 'max:100'],
+            'image_version' => ['required', 'integer', 'min:1'],
+            'image_signature' => ['required', 'string', 'size:40'],
             'is_active' => ['sometimes', 'boolean'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            fn (Validator $validator) => $this->verifyCloudinaryUpload($validator, true),
         ];
     }
 }

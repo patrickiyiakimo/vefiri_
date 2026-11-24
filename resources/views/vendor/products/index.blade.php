@@ -49,12 +49,6 @@
                 </div>
             @endif
 
-            @if (session('status'))
-                <div class="mt-3 rounded-xl bg-[#e7f8f2] px-4 py-3 text-xs font-semibold text-choice-dark">
-                    {{ session('status') }}
-                </div>
-            @endif
-
             <section class="mt-4 overflow-hidden rounded-2xl border border-black/[0.04] bg-white shadow-card">
                 <header class="flex items-center justify-between border-b border-line px-5 py-4">
                     <div>

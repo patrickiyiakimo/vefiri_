@@ -21,6 +21,7 @@ use App\Http\Controllers\ProductPhotoInquiryController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Controllers\Vendor\PremiumController as VendorPremiumController;
 use App\Http\Controllers\Vendor\ProductController as VendorProductController;
+use App\Http\Controllers\Vendor\ProductImageController as VendorProductImageController;
 use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
@@ -80,6 +81,9 @@ Route::middleware(['auth', 'vendor'])
         Route::get('/', VendorDashboardController::class)->name('dashboard');
         Route::get('/products', [VendorProductController::class, 'index'])->name('products.index');
         Route::get('/products/create', [VendorProductController::class, 'create'])->name('products.create');
+        Route::post('/product-images/signature', [VendorProductImageController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('product-images.signature');
         Route::post('/products', [VendorProductController::class, 'store'])->name('products.store');
         Route::get('/products/{product}/edit', [VendorProductController::class, 'edit'])->name('products.edit');
         Route::patch('/products/{product}', [VendorProductController::class, 'update'])->name('products.update');

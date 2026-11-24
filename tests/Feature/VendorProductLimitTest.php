@@ -5,17 +5,20 @@ namespace Tests\Feature;
 use App\Models\Product;
 use App\Models\Vendor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\UsesCloudinary;
 use Tests\TestCase;
 
 class VendorProductLimitTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesCloudinary;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->configureCloudinary();
 
         config([
             'vendor.free_product_limit' => 10,
@@ -33,9 +36,10 @@ class VendorProductLimitTest extends TestCase
 
         $this->actingAs($vendor->user)
             ->from(route('vendor.products.create'))
-            ->post(route('vendor.products.store'), $this->productPayload())
+            ->post(route('vendor.products.store'), $this->productPayload($vendor))
             ->assertRedirect(route('vendor.products.index'))
-            ->assertSessionHas('status');
+            ->assertSessionHas('toast')
+            ->assertSessionMissing('status');
 
         $this->assertSame(10, $vendor->products()->count());
     }
@@ -48,7 +52,7 @@ class VendorProductLimitTest extends TestCase
         Product::factory()->count(10)->for($vendor)->create();
 
         $this->actingAs($vendor->user)
-            ->post(route('vendor.products.store'), $this->productPayload())
+            ->post(route('vendor.products.store'), $this->productPayload($vendor))
             ->assertRedirect(route('vendor.premium.show'))
             ->assertSessionHas('limit_reached', true);
 
@@ -64,7 +68,7 @@ class VendorProductLimitTest extends TestCase
         Product::factory()->count(10)->for($vendor)->inactive()->create();
 
         $this->actingAs($vendor->user)
-            ->post(route('vendor.products.store'), $this->productPayload())
+            ->post(route('vendor.products.store'), $this->productPayload($vendor))
             ->assertRedirect(route('vendor.premium.show'))
             ->assertSessionHas('limit_reached', true);
 
@@ -79,7 +83,7 @@ class VendorProductLimitTest extends TestCase
         Product::factory()->count(10)->for($vendor)->create();
 
         $this->actingAs($vendor->user)
-            ->post(route('vendor.products.store'), $this->productPayload())
+            ->post(route('vendor.products.store'), $this->productPayload($vendor))
             ->assertRedirect(route('vendor.products.index'));
 
         $this->assertSame(11, $vendor->products()->count());
@@ -137,7 +141,7 @@ class VendorProductLimitTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function productPayload(): array
+    private function productPayload(Vendor $vendor): array
     {
         return [
             'name' => 'Handwoven Leather Tote',
@@ -145,7 +149,7 @@ class VendorProductLimitTest extends TestCase
             'description' => 'A handwoven leather tote bag made by artisans in Aba with a durable lined interior.',
             'price' => 45000,
             'stock' => 12,
-            'image' => UploadedFile::fake()->image('tote.jpg', 800, 800),
+            ...$this->cloudinaryImagePayload($vendor),
             'is_active' => '1',
         ];
     }

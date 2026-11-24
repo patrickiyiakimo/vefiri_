@@ -2,7 +2,7 @@ const MAX_TOASTS = 3;
 const AUTO_DISMISS_MS = 4200;
 
 const removeToast = (toast) => {
-    if (toast.dataset.leaving === 'true') {
+    if (! toast.isConnected || toast.dataset.leaving === 'true') {
         return;
     }
 
@@ -20,14 +20,14 @@ export function showToast(message) {
         return;
     }
 
-    const toasts = container.querySelectorAll('[data-toast]');
+    const toasts = container.querySelectorAll('[data-toast-item]');
 
     if (toasts.length >= MAX_TOASTS) {
         removeToast(toasts[0]);
     }
 
     const toast = document.createElement('div');
-    toast.dataset.toast = 'true';
+    toast.dataset.toastItem = 'true';
     toast.className = 'toast-enter pointer-events-auto flex w-full items-start gap-3 rounded-2xl border border-line bg-white p-3.5 shadow-float';
 
     const icon = document.createElement('span');
@@ -43,7 +43,10 @@ export function showToast(message) {
     close.className = 'flex size-7 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-surface hover:text-ink';
     close.setAttribute('aria-label', 'Dismiss notification');
     close.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="size-3.5" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
-    close.addEventListener('click', () => removeToast(toast));
+    close.addEventListener('click', (event) => {
+        event.stopPropagation();
+        removeToast(toast);
+    });
 
     toast.append(icon, text, close);
     container.append(toast);
@@ -63,6 +66,10 @@ export function initToasts() {
     });
 
     document.addEventListener('click', (event) => {
+        if (event.target.closest('[data-toast-container]')) {
+            return;
+        }
+
         const trigger = event.target.closest('[data-toast]');
 
         if (trigger) {

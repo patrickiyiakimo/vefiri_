@@ -8,13 +8,13 @@ use App\Http\Requests\StoreVendorProductRequest;
 use App\Http\Requests\UpdateVendorProductRequest;
 use App\Models\Product;
 use App\Models\Vendor;
+use App\Services\CloudinaryProductImages;
 use App\Services\ProductCatalog;
 use App\Services\VendorProductService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -23,7 +23,10 @@ class ProductController extends Controller
 {
     use ProvidesStorefrontData;
 
-    public function __construct(private readonly ProductCatalog $catalog) {}
+    public function __construct(
+        private readonly ProductCatalog $catalog,
+        private readonly CloudinaryProductImages $images,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -60,11 +63,9 @@ class ProductController extends Controller
         }
 
         $data = $request->validated();
-        $image = $request->file('image');
+        $imagePath = (string) $request->attributes->get('product_image_public_id');
 
-        unset($data['image']);
-
-        $imagePath = $image->storePublicly('vendor-products', $this->imageDisk());
+        unset($data['image_token'], $data['image_version'], $data['image_signature']);
 
         try {
             $product = $products->create($vendor, [
@@ -74,7 +75,7 @@ class ProductController extends Controller
                 'is_active' => $request->boolean('is_active'),
             ]);
         } catch (Throwable $exception) {
-            Storage::disk($this->imageDisk())->delete($imagePath);
+            $this->images->delete($imagePath);
 
             if ($exception instanceof ValidationException && array_key_exists('limit', $exception->errors())) {
                 return $this->redirectToPremium();
@@ -85,7 +86,7 @@ class ProductController extends Controller
 
         return redirect()
             ->route('vendor.products.index')
-            ->with('status', "{$product->name} has been added to your storefront.");
+            ->with('toast', "{$product->name} has been added to your storefront.");
     }
 
     public function edit(Request $request, Product $product): View
@@ -103,36 +104,48 @@ class ProductController extends Controller
     public function update(UpdateVendorProductRequest $request, Product $product): RedirectResponse
     {
         $data = $request->validated();
-        $image = $request->file('image');
+        $oldImagePath = $product->image_path;
+        $newImagePath = $request->attributes->get('product_image_public_id');
 
-        unset($data['image']);
+        unset($data['image_token'], $data['image_version'], $data['image_signature']);
 
-        if ($image !== null) {
-            Storage::disk($this->imageDisk())->delete($product->image_path);
-
-            $data['image_path'] = $image->storePublicly('vendor-products', $this->imageDisk());
+        if (is_string($newImagePath) && $newImagePath !== '') {
+            $data['image_path'] = $newImagePath;
         }
 
-        $product->update([
-            ...$data,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        try {
+            $product->update([
+                ...$data,
+                'is_active' => $request->boolean('is_active'),
+            ]);
+        } catch (Throwable $exception) {
+            $this->images->delete(is_string($newImagePath) ? $newImagePath : null);
+
+            throw $exception;
+        }
+
+        if (is_string($newImagePath) && $newImagePath !== '' && $oldImagePath !== $newImagePath) {
+            $this->images->delete($oldImagePath);
+        }
 
         return redirect()
             ->route('vendor.products.index')
-            ->with('status', "{$product->name} has been updated.");
+            ->with('toast', "{$product->name} has been updated.");
     }
 
     public function destroy(Product $product): RedirectResponse
     {
         Gate::authorize('delete', $product);
 
-        Storage::disk($this->imageDisk())->delete($product->image_path);
+        $imagePath = $product->image_path;
+
         $product->delete();
+
+        $this->images->delete($imagePath);
 
         return redirect()
             ->route('vendor.products.index')
-            ->with('status', 'Product removed from your storefront.');
+            ->with('toast', 'Product removed from your storefront.');
     }
 
     private function redirectToPremium(): RedirectResponse
@@ -148,11 +161,6 @@ class ProductController extends Controller
     private function vendor(Request $request): Vendor
     {
         return $request->user()->vendor()->firstOrFail();
-    }
-
-    private function imageDisk(): string
-    {
-        return (string) config('filesystems.product_images_disk', 'public');
     }
 
     private function uniqueSlug(string $name): string
