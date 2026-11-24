@@ -6,13 +6,21 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\UsesCloudinary;
 use Tests\TestCase;
 
 class VendorProductTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesCloudinary;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->configureCloudinary();
+    }
 
     public function test_verified_vendors_can_access_the_vendor_dashboard(): void
     {
@@ -38,8 +46,6 @@ class VendorProductTest extends TestCase
 
     public function test_verified_vendors_can_upload_a_product_and_it_appears_on_the_storefront(): void
     {
-        Storage::fake('public');
-
         $vendor = Vendor::factory()->create();
 
         $response = $this->actingAs($vendor->user)->post(route('vendor.products.store'), [
@@ -49,18 +55,29 @@ class VendorProductTest extends TestCase
             'price' => 45000,
             'compare_price' => 60000,
             'stock' => 12,
-            'image' => UploadedFile::fake()->image('tote.jpg', 800, 800),
+            ...$this->cloudinaryImagePayload($vendor),
             'is_active' => '1',
         ]);
 
-        $response->assertRedirect(route('vendor.products.index'));
+        $response->assertRedirect(route('vendor.products.index'))
+            ->assertSessionHas('toast', 'Handwoven Leather Tote has been added to your storefront.')
+            ->assertSessionMissing('status');
+
+        $this->assertDatabaseCount('cart_items', 0);
+        $this->assertDatabaseCount('favourites', 0);
 
         $product = Product::query()->where('name', 'Handwoven Leather Tote')->firstOrFail();
 
         $this->assertSame($vendor->id, $product->vendor_id);
         $this->assertSame('handwoven-leather-tote', $product->slug);
         $this->assertTrue($product->is_active);
-        Storage::disk('public')->assertExists($product->image_path);
+        $this->assertStringStartsWith('cloudinary/vendor-products/'.$vendor->id.'/', $product->image_path);
+        $this->assertStringContainsString('res.cloudinary.com/test-cloud/image/upload/f_auto,q_auto,c_limit,w_1200/', $product->imageUrl());
+
+        $this->get(route('vendor.products.index'))
+            ->assertOk()
+            ->assertSee('data-server-toast="Handwoven Leather Tote has been added to your storefront."', false)
+            ->assertDontSeeText('Handwoven Leather Tote has been added to your storefront.');
 
         $this->get(route('home'))
             ->assertOk()
@@ -125,7 +142,7 @@ class VendorProductTest extends TestCase
         $this->assertNotSame('Hijacked product', $product->fresh()->name);
     }
 
-    public function test_product_images_use_the_configured_storage_disk_url(): void
+    public function test_legacy_product_images_use_the_configured_storage_disk_url(): void
     {
         Storage::fake('public');
         Storage::disk('public')->put('vendor-products/tote.jpg', 'image-bytes');

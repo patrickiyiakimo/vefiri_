@@ -10,6 +10,7 @@ import { initLimitModal } from './modules/limit-modal';
 import { initLoadMore } from './modules/load-more';
 import { initNewsletters } from './modules/newsletter';
 import { initPasswordToggles } from './modules/password-toggle';
+import { initProductImageUpload } from './modules/product-image-upload';
 import { initProductPhotoInquiry } from './modules/product-photo-inquiry';
 import { initProductSlots } from './modules/product-slots';
 import { initSearch } from './modules/search';
@@ -23,6 +24,7 @@ const initStorefront = () => {
     initDrawers();
     initAuthModal();
     initLimitModal();
+    initProductImageUpload();
     initProductPhotoInquiry();
     initProductSlots();
     initPasswordToggles();
